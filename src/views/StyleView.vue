@@ -1,12 +1,8 @@
 <script setup>
-import { useRouter } from "vue-router";
-import { useStyleStore } from "@/stores/style.js";
-import { gradientBgPurplePink } from "@/colors.js";
-import SectionMain from "@/components/SectionMain.vue";
-import CardBox from "@/components/CardBox.vue";
-import LayoutGuest from "@/layouts/LayoutGuest.vue";
+import { useRouter } from 'vue-router';
+import { useStyleStore } from '@/stores/style.js';
 
-const styles = ["white", "basic"];
+const styles = ['white', 'basic'];
 
 const styleStore = useStyleStore();
 
@@ -16,7 +12,7 @@ const router = useRouter();
 
 const click = (slug) => {
   styleStore.setStyle(slug);
-  router.push("/dashboard");
+  router.push('/dashboard');
 };
 </script>
 
@@ -27,12 +23,13 @@ const click = (slug) => {
       class="flex min-h-screen items-center justify-center"
     >
       <SectionMain>
+        <q-btn color="secondary" label="Secondary" />
         <h1
-          class="text-4xl md:text-5xl text-center text-white font-bold mt-12 mb-3 lg:mt-0"
+          class="text-4xl md:text-5xl text-center font-bold mt-12 mb-3 lg:mt-0"
         >
           Pick a style&hellip;
         </h1>
-        <h2 class="text-xl md:text-xl text-center text-white mb-12">
+        <h2 class="text-xl md:text-xl text-center mb-12">
           Style switching with a single
           <code class="px-1.5 py-0.5 rounded bg-white bg-opacity-20"
             >action()</code

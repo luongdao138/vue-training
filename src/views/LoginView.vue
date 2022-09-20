@@ -1,13 +1,13 @@
 <script lang="ts">
-import { mdiAccount, mdiAsterisk } from "@mdi/js";
-import SectionFullScreen from "@/components/SectionFullScreen.vue";
-import CardBox from "@/components/CardBox.vue";
-import FormCheckRadio from "@/components/FormCheckRadio.vue";
-import FormField from "@/components/FormField.vue";
-import FormControl from "@/components/FormControl.vue";
-import BaseButton from "@/components/BaseButton.vue";
-import BaseButtons from "@/components/BaseButtons.vue";
-import LayoutGuest from "@/layouts/LayoutGuest.vue";
+import { mdiAccount, mdiAsterisk } from '@mdi/js';
+import SectionFullScreen from '@/components/SectionFullScreen.vue';
+import CardBox from '@/components/CardBox.vue';
+import FormCheckRadio from '@/components/FormCheckRadio.vue';
+import FormField from '@/components/FormField.vue';
+import FormControl from '@/components/FormControl.vue';
+import BaseButton from '@/components/BaseButton.vue';
+import BaseButtons from '@/components/BaseButtons.vue';
+import LayoutGuest from '@/layouts/LayoutGuest.vue';
 
 export default {
   components: {
@@ -23,8 +23,8 @@ export default {
   data: () => {
     return {
       form: {
-        username: "",
-        password: "",
+        username: '',
+        password: '',
       },
       mdiAccount,
       mdiAsterisk,

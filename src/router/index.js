@@ -1,81 +1,90 @@
-import { createRouter, createWebHashHistory } from "vue-router";
-import Style from "@/views/StyleView.vue";
-import Home from "@/views/HomeView.vue";
+import { createRouter, createWebHashHistory } from 'vue-router';
+import Style from '@/views/StyleView.vue';
+import Home from '@/views/HomeView.vue';
+import TodoMVC from '@/views/TodoMVC.vue';
 
 const routes = [
   {
     meta: {
-      title: "Select style",
+      title: 'Select style',
     },
-    path: "/",
-    name: "style",
+    path: '/',
+    name: 'style',
     component: Style,
   },
   {
     // Document title tag
     // We combine it with defaultDocumentTitle set in `src/main.js` on router.afterEach hook
     meta: {
-      title: "Dashboard",
+      title: 'Dashboard',
     },
-    path: "/dashboard",
-    name: "dashboard",
+    path: '/dashboard',
+    name: 'dashboard',
     component: Home,
   },
   {
     meta: {
-      title: "Tables",
+      title: 'Todo MVC App',
     },
-    path: "/tables",
-    name: "tables",
-    component: () => import("@/views/TablesView.vue"),
+    path: '/todo-mvc',
+    name: 'Todo MVC App',
+    component: TodoMVC,
   },
   {
     meta: {
-      title: "Forms",
+      title: 'Tables',
     },
-    path: "/forms",
-    name: "forms",
-    component: () => import("@/views/FormsView.vue"),
+    path: '/tables',
+    name: 'tables',
+    component: () => import('@/views/TablesView.vue'),
   },
   {
     meta: {
-      title: "Profile",
+      title: 'Forms',
     },
-    path: "/profile",
-    name: "profile",
-    component: () => import("@/views/ProfileView.vue"),
+    path: '/forms',
+    name: 'forms',
+    component: () => import('@/views/FormsView.vue'),
   },
   {
     meta: {
-      title: "Ui",
+      title: 'Profile',
     },
-    path: "/ui",
-    name: "ui",
-    component: () => import("@/views/UiView.vue"),
+    path: '/profile',
+    name: 'profile',
+    component: () => import('@/views/ProfileView.vue'),
   },
   {
     meta: {
-      title: "Responsive layout",
+      title: 'Ui',
     },
-    path: "/responsive",
-    name: "responsive",
-    component: () => import("@/views/ResponsiveView.vue"),
+    path: '/ui',
+    name: 'ui',
+    component: () => import('@/views/UiView.vue'),
   },
   {
     meta: {
-      title: "Login",
+      title: 'Responsive layout',
     },
-    path: "/login",
-    name: "login",
-    component: () => import("@/views/LoginView.vue"),
+    path: '/responsive',
+    name: 'responsive',
+    component: () => import('@/views/ResponsiveView.vue'),
   },
   {
     meta: {
-      title: "Error",
+      title: 'Login',
     },
-    path: "/error",
-    name: "error",
-    component: () => import("@/views/ErrorView.vue"),
+    path: '/login',
+    name: 'login',
+    component: () => import('@/views/LoginView.vue'),
+  },
+  {
+    meta: {
+      title: 'Error',
+    },
+    path: '/error',
+    name: 'error',
+    component: () => import('@/views/ErrorView.vue'),
   },
 ];
 
