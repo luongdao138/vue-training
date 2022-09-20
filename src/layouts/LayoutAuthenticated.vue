@@ -1,33 +1,37 @@
 <script setup>
-import { mdiForwardburger, mdiBackburger, mdiMenu } from "@mdi/js";
-import { ref } from "vue";
-import { useRouter } from "vue-router";
-import menuAside from "@/menuAside.js";
-import menuNavBar from "@/menuNavBar.js";
-import { useMainStore } from "@/stores/main.js";
-import { useStyleStore } from "@/stores/style.js";
-import BaseIcon from "@/components/BaseIcon.vue";
-import FormControl from "@/components/FormControl.vue";
-import NavBar from "@/components/NavBar.vue";
-import NavBarItemPlain from "@/components/NavBarItemPlain.vue";
-import AsideMenu from "@/components/AsideMenu.vue";
-import FooterBar from "@/components/FooterBar.vue";
+import { mdiForwardburger, mdiBackburger, mdiMenu } from '@mdi/js';
+import { ref, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import menuAside from '@/menuAside.js';
+import menuNavBar from '@/menuNavBar.js';
+import { useMainStore } from '@/stores/main.js';
+import { useStyleStore } from '@/stores/style.js';
+import BaseIcon from '@/components/BaseIcon.vue';
+import FormControl from '@/components/FormControl.vue';
+import NavBar from '@/components/NavBar.vue';
+import NavBarItemPlain from '@/components/NavBarItemPlain.vue';
+import AsideMenu from '@/components/AsideMenu.vue';
+import FooterBar from '@/components/FooterBar.vue';
+import { getCurrentUser } from '@/services/auth';
+import { useAuth } from '@/stores/auth';
 
 useMainStore().setUser({
-  name: "John Doe",
-  email: "john@example.com",
+  name: 'John Doe',
+  email: 'john@example.com',
   avatar:
-    "https://avatars.dicebear.com/api/avataaars/example.svg?options[top][]=shortHair&options[accessoriesChance]=93",
+    'https://avatars.dicebear.com/api/avataaars/example.svg?options[top][]=shortHair&options[accessoriesChance]=93',
 });
 
-const layoutAsidePadding = "xl:pl-60";
+const layoutAsidePadding = 'xl:pl-60';
 
 const styleStore = useStyleStore();
+const authStore = useAuth();
 
 const router = useRouter();
 
 const isAsideMobileExpanded = ref(false);
 const isAsideLgActive = ref(false);
+const isLoadingUser = ref(true);
 
 router.beforeEach(() => {
   isAsideMobileExpanded.value = false;
@@ -43,6 +47,33 @@ const menuClick = (event, item) => {
     //
   }
 };
+
+// watchers reactive
+watch([() => authStore.user, isLoadingUser], ([authUser, isLoading]) => {
+  console.log({ authUser, isLoading });
+  if (!isLoading && !authUser) {
+    router.push('/login');
+  }
+});
+
+onMounted(async () => {
+  // được gọi sau khi component được mount vào DOM
+  // gọi API lấy ra current user, nếu lỗi 401 thì redirect về trang login
+  try {
+    isLoadingUser.value = true;
+    const res = await getCurrentUser();
+    console.log(res);
+    authStore.loginSuccess(res.data);
+  } catch (error) {
+    // if(error?.response.status === 401) {
+    //  router.push('/login')
+    // } else {
+    console.log(error);
+    // }
+  } finally {
+    isLoadingUser.value = false;
+  }
+});
 </script>
 
 <template>

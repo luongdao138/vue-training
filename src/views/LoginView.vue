@@ -2,28 +2,30 @@
 import { mdiAccount, mdiAsterisk } from '@mdi/js';
 import SectionFullScreen from '@/components/SectionFullScreen.vue';
 import CardBox from '@/components/CardBox.vue';
-import FormCheckRadio from '@/components/FormCheckRadio.vue';
 import FormField from '@/components/FormField.vue';
 import FormControl from '@/components/FormControl.vue';
 import BaseButton from '@/components/BaseButton.vue';
 import BaseButtons from '@/components/BaseButtons.vue';
 import LayoutGuest from '@/layouts/LayoutGuest.vue';
+import { defineComponent } from 'vue';
+import { getCurrentUser, login } from '@/services/auth';
+import { mapActions, mapStores, mapState } from 'pinia';
+import { useAuth } from '@/stores/auth';
 
-export default {
+export default defineComponent({
   components: {
     SectionFullScreen,
     CardBox,
-    FormCheckRadio,
     FormField,
     FormControl,
     BaseButton,
     BaseButtons,
     LayoutGuest,
   },
-  data: () => {
+  data() {
     return {
       form: {
-        username: '',
+        email: '',
         password: '',
       },
       mdiAccount,
@@ -31,11 +33,31 @@ export default {
     };
   },
   methods: {
-    handleLogin() {
-      console.log(this.form);
+    async handleLogin() {
+      try {
+        const res = await login({ ...this.form });
+        localStorage.setItem('vue_training_token', res.data.token);
+        this.$router.push('/dashboard');
+      } catch (error) {
+        console.log(error);
+      }
     },
+    ...mapActions(useAuth, ['loginSuccess']),
   },
-};
+  computed: {
+    ...mapStores(useAuth),
+    ...mapState(useAuth, ['user']),
+  },
+  async mounted() {
+    try {
+      await getCurrentUser();
+      this.$router.push('/dashboard');
+    } catch (error) {
+      if (error.response.status === 401) {
+      }
+    }
+  },
+});
 </script>
 
 <template>
@@ -44,7 +66,7 @@ export default {
       <CardBox :class="cardClass" is-form @submit.prevent="handleLogin">
         <FormField label="Username" help="Please enter your username">
           <FormControl
-            v-model="form.username"
+            v-model="form.email"
             :icon="mdiAccount"
             name="username"
             autocomplete="username"
@@ -60,13 +82,6 @@ export default {
             autocomplete="current-password"
           />
         </FormField>
-
-        <FormCheckRadio
-          v-model="form.remember"
-          name="remember"
-          label="Remember"
-          :input-value="true"
-        />
 
         <template #footer>
           <BaseButtons>
