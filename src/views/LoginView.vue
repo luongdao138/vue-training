@@ -8,7 +8,7 @@ import BaseButton from '@/components/BaseButton.vue';
 import BaseButtons from '@/components/BaseButtons.vue';
 import LayoutGuest from '@/layouts/LayoutGuest.vue';
 import { defineComponent } from 'vue';
-import { getCurrentUser, login } from '@/services/auth';
+import { login } from '@/services/auth';
 import { mapActions, mapStores, mapState } from 'pinia';
 import { useAuth } from '@/stores/auth';
 
@@ -47,15 +47,6 @@ export default defineComponent({
   computed: {
     ...mapStores(useAuth),
     ...mapState(useAuth, ['user']),
-  },
-  async mounted() {
-    try {
-      await getCurrentUser();
-      this.$router.push('/dashboard');
-    } catch (error) {
-      if (error.response.status === 401) {
-      }
-    }
   },
 });
 </script>

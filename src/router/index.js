@@ -17,6 +17,7 @@ const routes = [
     // We combine it with defaultDocumentTitle set in `src/main.js` on router.afterEach hook
     meta: {
       title: 'Dashboard',
+      requiredAuth: true,
     },
     path: '/dashboard',
     name: 'dashboard',
@@ -24,6 +25,7 @@ const routes = [
   },
   {
     meta: {
+      requiredAuth: true,
       title: 'Todo MVC App',
     },
     path: '/todo-mvc',
@@ -32,6 +34,7 @@ const routes = [
   },
   {
     meta: {
+      requiredAuth: true,
       title: 'Tables',
     },
     path: '/tables',
@@ -40,6 +43,7 @@ const routes = [
   },
   {
     meta: {
+      requiredAuth: true,
       title: 'Forms',
     },
     path: '/forms',
@@ -48,6 +52,7 @@ const routes = [
   },
   {
     meta: {
+      requiredAuth: true,
       title: 'Profile',
     },
     path: '/profile',
@@ -56,6 +61,7 @@ const routes = [
   },
   {
     meta: {
+      requiredAuth: true,
       title: 'Ui',
     },
     path: '/ui',
@@ -64,6 +70,7 @@ const routes = [
   },
   {
     meta: {
+      requiredAuth: true,
       title: 'Responsive layout',
     },
     path: '/responsive',
@@ -72,6 +79,7 @@ const routes = [
   },
   {
     meta: {
+      requiredAuth: false,
       title: 'Login',
     },
     path: '/login',
