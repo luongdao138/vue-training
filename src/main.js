@@ -14,6 +14,9 @@ import { useStyleStore } from '@/stores/style.js';
 import { darkModeKey, styleKey } from '@/config.js';
 
 import './utils/authorize.ts';
+import Datepicker from '@vuepic/vue-datepicker';
+import '@vuepic/vue-datepicker/dist/main.css'
+
 import './css/main.css';
 
 /* Init Pinia */
@@ -21,6 +24,7 @@ const pinia = createPinia();
 
 /* Create Vue app */
 createApp(App)
+  .component('Datepicker', Datepicker)
   .use(Quasar, {
     plugins: {}, // import Quasar plugins and add here
   })
