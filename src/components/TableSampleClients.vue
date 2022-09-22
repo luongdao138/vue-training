@@ -1,29 +1,29 @@
 <script setup>
 import { computed, ref, reactive, onMounted, watch } from 'vue';
-import { useMainStore } from '@/stores/main';
 import { getTimeSheet } from '@/services/timesheet';
 import { mdiEye, mdiTrashCan } from '@mdi/js';
 import CardBoxModal from '@/components/CardBoxModal.vue';
-import TableCheckboxCell from '@/components/TableCheckboxCell.vue';
 import BaseLevel from '@/components/BaseLevel.vue';
 import BaseButtons from '@/components/BaseButtons.vue';
 import BaseButton from '@/components/BaseButton.vue';
+import LoadingOverlay from '@/components/LoadingOverlay.vue';
 import moment from 'moment';
+import CardBoxComponentEmpty from '@/components/CardBoxComponentEmpty.vue';
+import { isEmpty } from 'lodash';
+
 import { startOfMonth, endOfMonth, useTimeSheet } from '@/stores/timesheet';
 defineProps({
   checkable: Boolean,
 });
 
-const mainStore = useMainStore();
-
 const timesheet = useTimeSheet();
-const items = computed(() => mainStore.clients);
 const state = reactive({
   items: [],
 });
 async function fetchData(from, to) {
   const data = await getTimeSheet({ from: from, to: to });
   state.items = data.data.items;
+  timesheet.$patch({ loading: false });
 }
 onMounted(() => {
   fetchData(startOfMonth, endOfMonth);
@@ -33,17 +33,56 @@ watch([() => timesheet.from, () => timesheet.to], ([from, to]) => {
   fetchData(from, to);
 });
 
+const getDaysArray = function () {
+  var date = moment(timesheet.from).clone();
+  var result = [];
+  while (date.isSameOrBefore(timesheet.to)) {
+    result.push({ work_date: moment(date).format('YYYY-MM-DD') });
+    date.add(1, 'days');
+  }
+  return result;
+};
+
+const TimeSheetItems = computed(() => {
+  console.log(
+    getDaysArray().map((items) => {
+      for (let item of state.items) {
+        if (items.work_date == item.work_date) {
+          items = { ...items, ...item };
+        }
+      }
+      return items;
+    }), state.items
+  );
+  return getDaysArray().map((items) => {
+    for (let item of state.items) {
+      if (items.work_date == item.work_date) {
+        items = { ...items, ...item };
+      }
+    }
+    return items;
+  });
+  // return [...state.items];
+});
+
 const isModalActive = ref(false);
 
 const isModalDangerActive = ref(false);
 
-const perPage = ref(5);
+const perPage = ref(10);
 
 const currentPage = ref(0);
 
-const checkedRows = ref([]);
+const numPages = computed(() =>
+  Math.ceil(TimeSheetItems.value.length / perPage.value)
+);
 
-const numPages = computed(() => Math.ceil(items.value.length / perPage.value));
+const itemsPaginated = computed(() =>
+  TimeSheetItems.value.slice(
+    perPage.value * currentPage.value,
+    perPage.value * (currentPage.value + 1)
+  )
+);
 
 const currentPageHuman = computed(() => currentPage.value + 1);
 
@@ -56,29 +95,6 @@ const pagesList = computed(() => {
 
   return pagesList;
 });
-
-const remove = (arr, cb) => {
-  const newArr = [];
-
-  arr.forEach((item) => {
-    if (!cb(item)) {
-      newArr.push(item);
-    }
-  });
-
-  return newArr;
-};
-
-const checked = (isChecked, client) => {
-  if (isChecked) {
-    checkedRows.value.push(client);
-  } else {
-    checkedRows.value = remove(
-      checkedRows.value,
-      (row) => row.id === client.id
-    );
-  }
-};
 </script>
 
 <template>
@@ -96,69 +112,77 @@ const checked = (isChecked, client) => {
     <p>Lorem ipsum dolor sit amet <b>adipiscing elit</b></p>
     <p>This is sample modal</p>
   </CardBoxModal>
-
-  <div v-if="checkedRows.length" class="p-3 bg-gray-100/50 dark:bg-slate-800">
-    <span
-      v-for="checkedRow in checkedRows"
-      :key="checkedRow.id"
-      class="inline-block px-2 py-1 rounded-sm mr-2 text-sm bg-gray-100 dark:bg-slate-700"
-    >
-      {{ checkedRow.name }}
-    </span>
-  </div>
-
   <table>
     <thead>
       <tr>
-        <th v-if="checkable" />
-        <th />
-        <th>Date</th>
-        <th>Checkin</th>
-        <th>Checkout</th>
-        <th>Late</th>
-        <th>Early</th>
-        <th>In office</th>
-        <th>OT</th>
-        <th>Work time</th>
-        <th>Lack</th>
-        <th>Admin note</th>
+        <!-- <th> -->
+        <th class="text-center border-b-0 lg:w-4">No</th>
+        <th class="text-center lg:w-24">Date</th>
+        <th class="text-center">Checkin</th>
+        <th class="text-center">Checkout</th>
+        <th class="text-center">Late</th>
+        <th class="text-center">Early</th>
+        <th class="text-center">In office</th>
+        <th class="text-center">OT</th>
+        <th class="text-center">Work time</th>
+        <th class="text-center">Lack</th>
+        <th class="text-center">Admin note</th>
         <th>Action</th>
-        <th />
+        <!-- <th /> -->
       </tr>
     </thead>
-    <tbody>
-      <tr v-for="client in state.items" :key="client.id">
-        <TableCheckboxCell
-          v-if="checkable"
-          @checked="checked($event, client)"
-        />
-        <td class="border-b-0 lg:w-6 before:hidden"></td>
-        <td data-label="work_date">
-          {{ client.work_date }}
+    <tbody v-if="timesheet.loading">
+      <td colspan="100%" class="justify-center" style="height: 300px">
+        <LoadingOverlay style="margin-left: 46%" />
+      </td>
+    </tbody>
+    <!-- <tbody v-else-if="!timesheet.loading & isEmpty(state.items)">
+      <td colspan="100%" class="justify-center" style="height: 300px">
+        <CardBox>
+          <CardBoxComponentEmpty />
+        </CardBox>
+      </td>
+    </tbody> -->
+    <tbody v-else>
+      <tr
+        v-for="(timeSheetItem, index) in itemsPaginated"
+        :key="timeSheetItem.id"
+      >
+        <td class="text-center border-b-0 lg:w-4">{{ index + 1 }}</td>
+        <td class="text-center lg:w-24" data-label="work_date">
+          {{ timeSheetItem.work_date }}
         </td>
-        <td data-label="checkin">
-          {{ moment(client.checkin).format('HH:MM') }}
+        <td data-label="checkin" class="text-red-3 text-center">
+          {{
+            !isEmpty(timeSheetItem.checkin)
+              ? moment(timeSheetItem.checkin).format('HH:MM')
+              : ''
+          }}
         </td>
-        <td data-label="checkout">
-          {{ moment(client.checkout).format('HH:MM') }}
+        <td data-label="checkout" class="text-center">
+          {{
+            !isEmpty(timeSheetItem.checkout)
+              ? moment(timeSheetItem.checkout).format('HH:MM')
+              : ''
+          }}
         </td>
-        <td data-label="late_time" class="">
-          {{ client.late_time }}
+        <td data-label="late_time" class="text-center text-red-3">
+          {{ timeSheetItem.late_time }}
         </td>
-        <td data-label="early_time" class="whitespace-nowrap">
-          {{ client.early_time }}
+        <td data-label="early_time" class="text-center whitespace-nowrap">
+          {{ timeSheetItem.early_time }}
         </td>
-        <td data-label="in_office_time" class="whitespace-nowrap">
-          {{ client.in_office_time }}
+        <td data-label="in_office_time" class="text-center whitespace-nowrap">
+          {{ timeSheetItem.in_office_time }}
         </td>
-        <td data-label="over_time" class="whitespace-nowrap">
-          {{ client.over_time }}
+        <td data-label="over_time" class="text-center whitespace-nowrap">
+          {{ timeSheetItem.over_time }}
         </td>
-        <td data-label="work_time" class="whitespace-nowrap">
-          {{ client.work_time }}
+        <td data-label="work_time" class="text-center whitespace-nowrap">
+          {{ timeSheetItem.work_time }}
         </td>
-        <td data-label="lack_time" class="whitespace-nowrap">
-          {{ client.lack_time }}
+        <td data-label="lack_time" class="text-center whitespace-nowrap">
+          {{ timeSheetItem.lack_time }}
         </td>
         <td></td>
         <td class="before:hidden lg:w-1 whitespace-nowrap">
@@ -180,6 +204,7 @@ const checked = (isChecked, client) => {
       </tr>
     </tbody>
   </table>
+
   <div class="p-3 lg:px-6 border-t border-gray-100 dark:border-slate-800">
     <BaseLevel>
       <BaseButtons>

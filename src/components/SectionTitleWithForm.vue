@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive } from 'vue';
+import { ref, reactive, watch } from 'vue';
 import { startOfMonth, endOfMonth, useTimeSheet } from '@/stores/timesheet';
 import moment from 'moment';
 defineProps({
@@ -33,47 +33,45 @@ const format = (date) => {
   return `${year}-${month}-${day}`;
 };
 const onSubmit = () => {
-  if (formType.value == 'fromList') {
-    switch (selectModal.value.id) {
-      case 1:
-        timesheet.$patch({
-          from: startOfMonth,
-          to: endOfMonth,
-        });
-        break;
-      case 2:
-        timesheet.$patch({
-          from: moment()
-            .subtract(1, 'months')
-            .startOf('month')
-            .format('YYYY-MM-DD'),
-          to: moment()
-            .subtract(1, 'months')
-            .endOf('month')
-            .format('YYYY-MM-DD'),
-        });
-        break;
-      case 3:
-        timesheet.$patch({
-          from: moment().format('YYYY-MM-DD'),
-          to: moment().format('YYYY-MM-DD'),
-        });
-        break;
-      case 4:
-        timesheet.$patch({
-          from: moment().subtract(1, 'day').format('YYYY-MM-DD'),
-          to: moment().subtract(1, 'day').format('YYYY-MM-DD'),
-        });
-        break;
-    }
-  } else {
+  if (formType.value == 'startEnd') {
     timesheet.$patch({
       from: format(moment(startDate.value).toDate()),
       to: format(moment(endDate.value).toDate()),
     });
-    // console.log({ from: format(moment(startDate.value).toDate()) });
   }
 };
+
+watch([() => selectModal.value], () => {
+  switch (selectModal.value.id) {
+    case 1:
+      timesheet.$patch({
+        from: startOfMonth,
+        to: endOfMonth,
+      });
+      break;
+    case 2:
+      timesheet.$patch({
+        from: moment()
+          .subtract(1, 'months')
+          .startOf('month')
+          .format('YYYY-MM-DD'),
+        to: moment().subtract(1, 'months').endOf('month').format('YYYY-MM-DD'),
+      });
+      break;
+    case 3:
+      timesheet.$patch({
+        from: moment().format('YYYY-MM-DD'),
+        to: moment().format('YYYY-MM-DD'),
+      });
+      break;
+    case 4:
+      timesheet.$patch({
+        from: moment().subtract(1, 'day').format('YYYY-MM-DD'),
+        to: moment().subtract(1, 'day').format('YYYY-MM-DD'),
+      });
+      break;
+  }
+});
 
 const form = reactive({
   chooseFromList: selectOptions[0],
@@ -92,14 +90,14 @@ const disableSelect = () => {
       class="mb-6 flex items-center justify-between"
     >
       <div class="flex items-center justify-start">
-        <IconRounded
+        <!-- <IconRounded
           v-if="icon && main"
           :icon="icon"
           color="light"
           class="mr-3"
           bg
         />
-        <BaseIcon v-else-if="icon" :path="icon" class="mr-2" size="20" />
+        <BaseIcon v-else-if="icon" :path="icon" class="mr-2" size="20" /> -->
         <h1 :class="main ? 'text-3xl' : 'text-2xl'" class="leading-tight">
           {{ title }}
         </h1>

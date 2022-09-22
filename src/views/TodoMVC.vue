@@ -1,13 +1,9 @@
 <script setup>
 import LayoutAuthenticated from '@/layouts/LayoutAuthenticated.vue';
 import SectionMain from '@/components/SectionMain.vue';
-import NotificationBar from '@/components/NotificationBar.vue';
 import TableSampleClients from '@/components/TableSampleClients.vue';
 import CardBox from '@/components/CardBox.vue';
 import SectionTitleWithForm from '@/components/SectionTitleWithForm.vue'
-import SectionTitleLineWithButton from '@/components/SectionTitleLineWithButton.vue';
-import BaseButton from '@/components/BaseButton.vue';
-import CardBoxComponentEmpty from '@/components/CardBoxComponentEmpty.vue';
 
 
 </script>
@@ -25,15 +21,9 @@ import CardBoxComponentEmpty from '@/components/CardBoxComponentEmpty.vue';
         <TableSampleClients checkable />
       </CardBox>
 
-      <SectionTitleLineWithButton :icon="mdiTableOff" title="Empty variation" />
+      <!-- <SectionTitleLineWithButton :icon="mdiTableOff" title="Empty variation" /> -->
 
-      <NotificationBar color="danger" :icon="mdiTableOff">
-        <b>Empty table.</b> When there's nothing to show
-      </NotificationBar>
 
-      <CardBox>
-        <CardBoxComponentEmpty />
-      </CardBox>
     </SectionMain>
   </LayoutAuthenticated>
 </template>
