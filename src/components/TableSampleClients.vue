@@ -1,14 +1,14 @@
 <script setup>
-import { computed, ref } from "vue";
-import { useMainStore } from "@/stores/main";
-import { mdiEye, mdiTrashCan } from "@mdi/js";
-import CardBoxModal from "@/components/CardBoxModal.vue";
-import TableCheckboxCell from "@/components/TableCheckboxCell.vue";
-import BaseLevel from "@/components/BaseLevel.vue";
-import BaseButtons from "@/components/BaseButtons.vue";
-import BaseButton from "@/components/BaseButton.vue";
-import UserAvatar from "@/components/UserAvatar.vue";
-
+import { computed, ref, reactive, onMounted } from 'vue';
+import { useMainStore } from '@/stores/main';
+import { getTimeSheet } from '@/services/timesheet';
+import { mdiEye, mdiTrashCan } from '@mdi/js';
+import CardBoxModal from '@/components/CardBoxModal.vue';
+import TableCheckboxCell from '@/components/TableCheckboxCell.vue';
+import BaseLevel from '@/components/BaseLevel.vue';
+import BaseButtons from '@/components/BaseButtons.vue';
+import BaseButton from '@/components/BaseButton.vue';
+import moment from 'moment';
 defineProps({
   checkable: Boolean,
 });
@@ -16,6 +16,33 @@ defineProps({
 const mainStore = useMainStore();
 
 const items = computed(() => mainStore.clients);
+const state = reactive({
+  items: [],
+});
+async function fetchData() {
+  const data = await getTimeSheet({ from: '2022-08-01', to: '2022-08-05' });
+  state.items = data.data.items;
+  // let config = {
+  //   headers: {
+  //     Authorization: `Bearer ${localStorage.getItem('vue_training_token')}`,
+  //   },
+  //   params: {
+  //     from: '2022-08-01',
+  //     to: '2022-08-05',
+  //   },
+  // };
+  // await axios
+  //   .get(`http://172.16.110.123:82/api/v1/timesheet`, config)
+  //   .then((res) => {
+  //     state.items = res.data.data.items;
+  //   });
+}
+onMounted(() => {
+  fetchData();
+});
+// const listDays = computed(() => {
+//   return toRaw(state.data?.data?.items);
+// });
 
 const isModalActive = ref(false);
 
@@ -26,13 +53,6 @@ const perPage = ref(5);
 const currentPage = ref(0);
 
 const checkedRows = ref([]);
-
-const itemsPaginated = computed(() =>
-  items.value.slice(
-    perPage.value * currentPage.value,
-    perPage.value * (currentPage.value + 1)
-  )
-);
 
 const numPages = computed(() => Math.ceil(items.value.length / perPage.value));
 
@@ -103,51 +123,55 @@ const checked = (isChecked, client) => {
       <tr>
         <th v-if="checkable" />
         <th />
-        <th>Name</th>
-        <th>Company</th>
-        <th>City</th>
-        <th>Progress</th>
-        <th>Created</th>
+        <th>Date</th>
+        <th>Checkin</th>
+        <th>Checkout</th>
+        <th>Late</th>
+        <th>Early</th>
+        <th>In office</th>
+        <th>OT</th>
+        <th>Work time</th>
+        <th>Lack</th>
+        <th>Admin note</th>
+        <th>Action</th>
         <th />
       </tr>
     </thead>
     <tbody>
-      <tr v-for="client in itemsPaginated" :key="client.id">
+      <tr v-for="client in state.items" :key="client.id">
         <TableCheckboxCell
           v-if="checkable"
           @checked="checked($event, client)"
         />
-        <td class="border-b-0 lg:w-6 before:hidden">
-          <UserAvatar
-            :username="client.name"
-            class="w-24 h-24 mx-auto lg:w-6 lg:h-6"
-          />
+        <td class="border-b-0 lg:w-6 before:hidden"></td>
+        <td data-label="work_date">
+          {{ client.work_date }}
         </td>
-        <td data-label="Name">
-          {{ client.name }}
+        <td data-label="checkin">
+          {{ moment(client.checkin).format('HH:MM') }}
         </td>
-        <td data-label="Company">
-          {{ client.company }}
+        <td data-label="checkout">
+          {{ moment(client.checkout).format('HH:MM') }}
         </td>
-        <td data-label="City">
-          {{ client.city }}
+        <td data-label="late_time" class="">
+          {{ client.late_time }}
         </td>
-        <td data-label="Progress" class="lg:w-32">
-          <progress
-            class="flex w-2/5 self-center lg:w-full"
-            max="100"
-            :value="client.progress"
-          >
-            {{ client.progress }}
-          </progress>
+        <td data-label="early_time" class="whitespace-nowrap">
+          {{ client.early_time }}
         </td>
-        <td data-label="Created" class="lg:w-1 whitespace-nowrap">
-          <small
-            class="text-gray-500 dark:text-slate-400"
-            :title="client.created"
-            >{{ client.created }}</small
-          >
+        <td data-label="in_office_time" class="whitespace-nowrap">
+          {{ client.in_office_time }}
         </td>
+        <td data-label="over_time" class="whitespace-nowrap">
+          {{ client.over_time }}
+        </td>
+        <td data-label="work_time" class="whitespace-nowrap">
+          {{ client.work_time }}
+        </td>
+        <td data-label="lack_time" class="whitespace-nowrap">
+          {{ client.lack_time }}
+        </td>
+        <td></td>
         <td class="before:hidden lg:w-1 whitespace-nowrap">
           <BaseButtons type="justify-start lg:justify-end" no-wrap>
             <BaseButton
