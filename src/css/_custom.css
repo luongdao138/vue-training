@@ -1,0 +1,9 @@
+input {
+  background-color: unset;
+  outline: none;
+}
+
+input:focus,
+textarea:focus {
+  box-shadow: none !important;
+}

@@ -1,5 +1,13 @@
 <script setup>
-import { computed, ref, reactive, onMounted, watch, watchEffect } from "vue";
+import {
+  computed,
+  ref,
+  reactive,
+  onMounted,
+  watch,
+  watchEffect,
+  provide,
+} from "vue";
 import LoadingOverlay from "@/components/LoadingOverlay.vue";
 import { isEmpty } from "lodash";
 import { startOfMonth, endOfMonth, useTimeSheet } from "@/stores/timesheet";
@@ -130,7 +138,7 @@ const checked = (isChecked, client) => {
 // vì data chưa đc sync nên fix cứng một ngày
 const { data: timesheetDetail, isLoading: isLoadingDetail } = useQuery(
   // `/timesheet/detail?date=${getCurrentDay()}`,
-  `/timesheet/detail?date=2022-08-22`,
+  `/timesheet/detail?date=2022-08-02`,
   {},
   {
     enabled: isOpenForgetModal,
@@ -152,6 +160,9 @@ watchEffect(() => {
     $q.loading.hide();
   }
 });
+
+// provide
+provide("timesheetDetail", timesheetDetail);
 </script>
 
 <template>
@@ -159,6 +170,7 @@ watchEffect(() => {
     v-if="!isLoadingDetail"
     v-model="isOpenForgetModal"
     has-cancel
+    confirm-on-click-overlay
     title="Register forget check finger print"
     button-label="Register"
     :style="{ maxWidth: '700px', width: '100%' }"
