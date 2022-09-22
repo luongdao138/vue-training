@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, reactive, onMounted } from 'vue';
+import { computed, ref, reactive, onMounted, watch } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { getTimeSheet } from '@/services/timesheet';
 import { mdiEye, mdiTrashCan } from '@mdi/js';
@@ -9,40 +9,29 @@ import BaseLevel from '@/components/BaseLevel.vue';
 import BaseButtons from '@/components/BaseButtons.vue';
 import BaseButton from '@/components/BaseButton.vue';
 import moment from 'moment';
+import { startOfMonth, endOfMonth, useTimeSheet } from '@/stores/timesheet';
 defineProps({
   checkable: Boolean,
 });
 
 const mainStore = useMainStore();
 
+const timesheet = useTimeSheet();
 const items = computed(() => mainStore.clients);
 const state = reactive({
   items: [],
 });
-async function fetchData() {
-  const data = await getTimeSheet({ from: '2022-08-01', to: '2022-08-05' });
+async function fetchData(from, to) {
+  const data = await getTimeSheet({ from: from, to: to });
   state.items = data.data.items;
-  // let config = {
-  //   headers: {
-  //     Authorization: `Bearer ${localStorage.getItem('vue_training_token')}`,
-  //   },
-  //   params: {
-  //     from: '2022-08-01',
-  //     to: '2022-08-05',
-  //   },
-  // };
-  // await axios
-  //   .get(`http://172.16.110.123:82/api/v1/timesheet`, config)
-  //   .then((res) => {
-  //     state.items = res.data.data.items;
-  //   });
 }
 onMounted(() => {
-  fetchData();
+  fetchData(startOfMonth, endOfMonth);
 });
-// const listDays = computed(() => {
-//   return toRaw(state.data?.data?.items);
-// });
+
+watch([() => timesheet.from, () => timesheet.to], ([from, to]) => {
+  fetchData(from, to);
+});
 
 const isModalActive = ref(false);
 
