@@ -1,17 +1,13 @@
 import client from '@/services/client';
-
-
+import { useTimeSheet } from '@/stores/timesheet';
 export interface TimeSheetParams {
   from: string;
   to: string;
 }
 
-export const getTimeSheet = async (
-  params: TimeSheetParams
-): Promise<any> => {
+export const getTimeSheet = async (params: TimeSheetParams): Promise<any> => {
+  useTimeSheet().$patch({ loading: true });
   const res = await client.get<any>(`/timesheet`, { params });
-  console.log(res.data);
-
   return res.data;
 };
 
@@ -29,4 +25,3 @@ export const getTimeSheet = async (
 
 // DEL
 // product/{id} -> delete
-

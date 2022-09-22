@@ -6,6 +6,7 @@ export interface TimeSheetData {
   items: any[];
   from: string;
   to: string;
+  loading: boolean;
 }
 export const startOfMonth = moment().startOf('month').format('YYYY-MM-DD');
 export const endOfMonth = moment().endOf('month').format('YYYY-MM-DD');
@@ -16,6 +17,7 @@ export const useTimeSheet = defineStore('timesheet', {
       items: [],
       from: startOfMonth,
       to: endOfMonth,
+      loading: true,
     };
   },
   actions: {
