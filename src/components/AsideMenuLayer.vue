@@ -1,10 +1,12 @@
 <script setup>
-import { mdiLogout, mdiClose } from "@mdi/js";
-import { computed } from "vue";
+import { mdiLogout } from "@mdi/js";
+import { computed, ref } from "vue";
 import { useStyleStore } from "@/stores/style.js";
 import AsideMenuList from "@/components/AsideMenuList.vue";
 import AsideMenuItem from "@/components/AsideMenuItem.vue";
-import BaseIcon from "@/components/BaseIcon.vue";
+import { useAuth } from "../stores/auth.ts";
+import { storeToRefs } from "pinia";
+import Image from "@/components/Image.vue";
 
 defineProps({
   menu: {
@@ -28,9 +30,13 @@ const menuClick = (event, item) => {
   emit("menu-click", event, item);
 };
 
-const asideLgCloseClick = (event) => {
-  emit("aside-lg-close-click", event);
-};
+// const asideLgCloseClick = (event) => {
+//   emit("aside-lg-close-click", event);
+// };
+
+// pinia state
+const authStore = useAuth();
+const { user } = storeToRefs(authStore);
 </script>
 
 <template>
@@ -44,19 +50,13 @@ const asideLgCloseClick = (event) => {
     >
       <div
         :class="styleStore.asideBrandStyle"
-        class="flex flex-row h-14 items-center justify-between dark:bg-slate-900"
+        class="flex flex-row flex-nowrap h-18 p-4 items-center dark:bg-slate-900"
       >
-        <div
-          class="text-center flex-1 lg:text-left lg:pl-6 xl:text-center xl:pl-0"
-        >
-          <b class="font-black">One</b>
-        </div>
-        <button
-          class="hidden lg:inline-block xl:hidden p-3"
-          @click.prevent="asideLgCloseClick"
-        >
-          <BaseIcon :path="mdiClose" />
-        </button>
+        <q-avatar class="mr-2" size="36px">
+          <Image :url="user.avatar" />
+        </q-avatar>
+
+        <h3 class="text-sm font-medium">Welcome, {{ user.name }}</h3>
       </div>
       <div
         :class="
