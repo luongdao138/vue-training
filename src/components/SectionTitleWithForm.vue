@@ -16,6 +16,10 @@ defineProps({
   main: Boolean,
 });
 
+const modal = ref(null);
+const endDate = ref(null);
+const startDate = ref(null);
+const handleOnClickChangeDate = ref(false);
 const formType = ref('fromList');
 const format = (date) => {
   const day = date.getDate();
@@ -38,9 +42,10 @@ const form = reactive({
   from: '',
   to: '',
 });
-
-const modal = ref(null);
-const handleOnClickChangeDate = ref(false);
+console.log(formType.value);
+const disableSelect = () => {
+  return formType.value !== 'fromList';
+};
 </script>
 
 <template>
@@ -89,6 +94,7 @@ const handleOnClickChangeDate = ref(false);
             v-model="modal"
             style="min-width: 200px"
             class="q-ml-sm"
+            :disable="disableSelect()"
             outlined
             :options="selectOptions"
             :option-value="id"
@@ -103,12 +109,27 @@ const handleOnClickChangeDate = ref(false);
         </div>
         <div class="row">
           <q-radio
-            left-label
             v-model="formType"
+            left-label
             val="startEnd"
             class="radio-btn justify-between"
             label="Choose start, end:"
           ></q-radio>
+          <Datepicker
+            v-model="startDate"
+            :format="format"
+            class="q-ml-sm"
+            :disabled="!disableSelect()"
+          />
+        </div>
+        <div class="row">
+          <Datepicker
+            v-model="endDate"
+            :disabled="!disableSelect()"
+            :format="format"
+            class="q-ml-sm"
+            style="padding-left: 180px"
+          />
         </div>
         <div>
           <q-btn
