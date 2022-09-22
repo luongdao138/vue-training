@@ -1,9 +1,7 @@
 <script setup>
-import { mdiCog } from '@mdi/js';
-import { ref, computed, reactive } from 'vue';
-import BaseIcon from '@/components/BaseIcon.vue';
-import BaseButton from '@/components/BaseButton.vue';
-import IconRounded from '@/components/IconRounded.vue';
+import { ref, reactive } from 'vue';
+import { startOfMonth, endOfMonth, useTimeSheet } from '@/stores/timesheet';
+import moment from 'moment';
 defineProps({
   icon: {
     type: String,
@@ -15,11 +13,17 @@ defineProps({
   },
   main: Boolean,
 });
+const selectOptions = [
+  { id: 1, label: 'This month' },
+  { id: 2, label: 'Last month' },
+  { id: 3, label: 'Today' },
+  { id: 4, label: 'Yesterday' },
+];
 
-const modal = ref(null);
-const endDate = ref(null);
-const startDate = ref(null);
-const handleOnClickChangeDate = ref(false);
+const timesheet = useTimeSheet();
+const selectModal = ref(selectOptions[0]);
+const endDate = ref(moment(endOfMonth));
+const startDate = ref(moment(startOfMonth));
 const formType = ref('fromList');
 const format = (date) => {
   const day = date.getDate();
@@ -28,21 +32,54 @@ const format = (date) => {
 
   return `${year}-${month}-${day}`;
 };
-const submit = () => {
-  console.log(form.chooseFromList);
+const onSubmit = () => {
+  if (formType.value == 'fromList') {
+    switch (selectModal.value.id) {
+      case 1:
+        timesheet.$patch({
+          from: startOfMonth,
+          to: endOfMonth,
+        });
+        break;
+      case 2:
+        timesheet.$patch({
+          from: moment()
+            .subtract(1, 'months')
+            .startOf('month')
+            .format('YYYY-MM-DD'),
+          to: moment()
+            .subtract(1, 'months')
+            .endOf('month')
+            .format('YYYY-MM-DD'),
+        });
+        break;
+      case 3:
+        timesheet.$patch({
+          from: moment().format('YYYY-MM-DD'),
+          to: moment().format('YYYY-MM-DD'),
+        });
+        break;
+      case 4:
+        timesheet.$patch({
+          from: moment().subtract(1, 'day').format('YYYY-MM-DD'),
+          to: moment().subtract(1, 'day').format('YYYY-MM-DD'),
+        });
+        break;
+    }
+  } else {
+    timesheet.$patch({
+      from: format(moment(startDate.value).toDate()),
+      to: format(moment(endDate.value).toDate()),
+    });
+    // console.log({ from: format(moment(startDate.value).toDate()) });
+  }
 };
-const selectOptions = [
-  { id: 1, label: 'This month' },
-  { id: 2, label: 'Last month' },
-  { id: 3, label: 'Today' },
-  { id: 4, label: 'Yesterday' },
-];
+
 const form = reactive({
   chooseFromList: selectOptions[0],
   from: '',
   to: '',
 });
-console.log(formType.value);
 const disableSelect = () => {
   return formType.value !== 'fromList';
 };
@@ -68,12 +105,6 @@ const disableSelect = () => {
         </h1>
       </div>
       <slot v-if="hasSlot" />
-      <BaseButton
-        v-else
-        :icon="mdiCog"
-        color="whiteDark"
-        @click="handleOnClickChangeDate = true"
-      />
     </section>
     <section>
       <q-form
@@ -91,7 +122,7 @@ const disableSelect = () => {
             label="Choose from list:"
           ></q-radio>
           <q-select
-            v-model="modal"
+            v-model="selectModal"
             style="min-width: 200px"
             class="q-ml-sm"
             :disable="disableSelect()"
@@ -131,13 +162,13 @@ const disableSelect = () => {
             style="padding-left: 180px"
           />
         </div>
-        <div>
+        <div class="row justify-center">
           <q-btn
             label="Search"
             type="submit"
             color="primary"
             flat
-            class="q-ml-sm"
+            class="q-mb-lg"
           ></q-btn>
         </div>
       </q-form>

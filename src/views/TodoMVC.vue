@@ -8,6 +8,8 @@ import SectionTitleWithForm from '@/components/SectionTitleWithForm.vue'
 import SectionTitleLineWithButton from '@/components/SectionTitleLineWithButton.vue';
 import BaseButton from '@/components/BaseButton.vue';
 import CardBoxComponentEmpty from '@/components/CardBoxComponentEmpty.vue';
+
+
 </script>
 <template>
   <LayoutAuthenticated>
