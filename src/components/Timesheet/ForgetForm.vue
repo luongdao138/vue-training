@@ -1,5 +1,5 @@
 <script setup>
-import { computed, inject, ref, watch } from "vue";
+import { computed, inject, ref, watch, watchEffect } from "vue";
 import TimePicker from "../TimePicker.vue";
 import Checkbox from "../Checkbox.vue";
 import TimeSheetItem from "./TimeSheetItem.vue";
@@ -8,6 +8,13 @@ import { convertDate, compareTwoTime, changeTime } from "@/utils/datetime";
 import { storeToRefs } from "pinia";
 import { useAuth } from "@/stores/auth";
 import { MAX_REQUEST } from "@/constants/timesheet";
+
+defineProps({
+  selectedDate: {
+    type: String,
+    default: "",
+  },
+});
 
 const emit = defineEmits(["disableSubmitBtn", "enableSubmitBtn"]);
 
@@ -18,8 +25,8 @@ const authStore = useAuth();
 const { user } = storeToRefs(authStore);
 const detailData = computed(() => timesheetDetail.value?.data);
 // const detailData = computed(() => ({
-//   checkin: "2022-08-02 08:36:46",
-//   checkout: "2022-08-02 17:24:46",
+//   checkin: "2022-09-05 08:36:34",
+//   checkout: "2022-09-05 08:35:34",
 // }));
 
 const reason = ref("");
@@ -113,20 +120,6 @@ watch(
   }
 );
 
-watch(
-  [checkinTime, checkoutTime],
-  ([newCheckinTime, newCheckoutTime]) => {
-    if (compareTwoTime(newCheckinTime, newCheckoutTime, ">=")) {
-      error.value = "check in must snaller than checkout";
-      emit("disableSubmitBtn");
-    } else {
-      error.value = null;
-      emit("enableSubmitBtn");
-    }
-  },
-  { immediate: true }
-);
-
 const checkinLabel = computed(() => {
   return isValidCheckinTime.value
     ? formattedCheckinTime.value
@@ -140,28 +133,23 @@ const checkoutLabel = computed(() => {
 });
 
 const isValidCheckinTime = computed(() => {
-  // return compareDateVsSetting(
-  //   detailData.value.checkin,
-  //   user.value.checkin_setting,
-  //   "<="
-  // );
-  return compareTwoTime(
-    formattedCheckinTime.value,
-    changeTime(user.value.checkin_setting, 5),
-    "<="
+  return (
+    detailData.value?.checkin &&
+    compareTwoTime(
+      formattedCheckinTime.value,
+      changeTime(user.value.checkin_setting, 5),
+      "<="
+    )
   );
 });
 const isValidCheckoutTime = computed(() => {
-  // return compareDateVsSetting(
-  //   detailData.value.checkout,
-  //   user.value.checkout_setting,
-  //   ">="
-  // );
-
-  return compareTwoTime(
-    formattedCheckoutTime.value,
-    changeTime(user.value.checkout_setting, -5),
-    ">="
+  return (
+    detailData.value.checkout &&
+    compareTwoTime(
+      formattedCheckoutTime.value,
+      changeTime(user.value.checkout_setting, -5),
+      ">="
+    )
   );
 });
 
@@ -170,6 +158,32 @@ const isCheckinChange = computed(() => {
 });
 const isCheckoutChange = computed(() => {
   return checkoutTime.value !== formattedCheckoutTime.value;
+});
+
+const isShowErrorRequest = computed(() => {
+  return !isValidCheckinTime.value || !isValidCheckoutTime.value;
+});
+
+watchEffect(() => {
+  // if (!checkinTime.value && !checkoutTime.value) {
+  //   emit("disableSubmitBtn");
+  //   return;
+  // }
+  if (isShowErrorRequest.value) {
+    if (compareTwoTime(checkinTime.value, checkoutTime.value, ">=")) {
+      error.value = "check in must snaller than checkout";
+      emit("disableSubmitBtn");
+    } else {
+      error.value = null;
+      emit("enableSubmitBtn");
+    }
+  } else {
+    if (isCheckinChange.value || isCheckoutChange.value) {
+      emit("enableSubmitBtn");
+    } else {
+      emit("disableSubmitBtn");
+    }
+  }
 });
 </script>
 
@@ -187,7 +201,10 @@ const isCheckoutChange = computed(() => {
     <TimeSheetItem required label="Checkin">
       <div class="flex items-center">
         <TimePicker v-model="checkinTime" class="flex-1 mr-2" />
-        <span class="">({{ convertDate(detailData?.checkin, "HH:mm") }})</span>
+        <span v-if="Boolean(detailData.checkin)"
+          >({{ convertDate(detailData?.checkin, "HH:mm") }})</span
+        >
+        <span v-if="!Boolean(detailData.checkin)">(N/A)</span>
         <Checkbox
           v-model="isCheckinChecked"
           :disable="isValidCheckinTime"
@@ -200,7 +217,10 @@ const isCheckoutChange = computed(() => {
     <TimeSheetItem required label="Checkout">
       <div class="flex items-center">
         <TimePicker v-model="checkoutTime" class="flex-1 mr-2" />
-        <span class="">({{ convertDate(detailData?.checkout, "HH:mm") }})</span>
+        <span v-if="Boolean(detailData.checkout)"
+          >({{ convertDate(detailData?.checkout, "HH:mm") }})</span
+        >
+        <span v-if="!Boolean(detailData.checkout)">(N/A)</span>
         <Checkbox
           v-model="isCheckoutChecked"
           :disable="isValidCheckoutTime"
@@ -231,10 +251,15 @@ const isCheckoutChange = computed(() => {
       <TextArea v-model="reason" />
     </TimeSheetItem>
     <div>
-      <span v-if="Boolean(error)" class="text-red-500 font-medium text-xs"
+      <span
+        v-if="Boolean(error) && isShowErrorRequest"
+        class="text-red-500 font-medium text-xs"
         >checkin must smaller than checkout</span
       >
-      <p class="text-red-500 font-semibold">
+      <span v-if="!isShowErrorRequest" class="text-red-500 font-medium text-xs"
+        >You must change time checkin or checkout</span
+      >
+      <p v-if="isShowErrorRequest" class="text-red-500 font-semibold">
         {{ countedError }} error(s) will be counted, You are allowed to get
         {{ MAX_REQUEST - detailData?.forget_request }}/{{ MAX_REQUEST }}
         error(s)

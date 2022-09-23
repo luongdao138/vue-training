@@ -65,3 +65,9 @@ export const changeTime = (time, amount = 0) => {
     }
   }
 };
+
+export const checkEqualDays = (day1, day2, unit = "day") => {
+  day1 = new Date(day1);
+  day2 = new Date(day2);
+  return moment(day1).isSame(new Date(), unit);
+};

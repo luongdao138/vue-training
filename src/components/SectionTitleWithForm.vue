@@ -1,7 +1,7 @@
 <script setup>
-import { ref, reactive, watch } from 'vue';
-import { startOfMonth, endOfMonth, useTimeSheet } from '@/stores/timesheet';
-import moment from 'moment';
+import { ref, reactive, watch } from "vue";
+import { startOfMonth, endOfMonth, useTimeSheet } from "@/stores/timesheet";
+import moment from "moment";
 defineProps({
   icon: {
     type: String,
@@ -14,10 +14,10 @@ defineProps({
   main: Boolean,
 });
 const selectOptions = [
-  { id: 1, label: 'This month' },
-  { id: 2, label: 'Last month' },
-  { id: 3, label: 'Today' },
-  { id: 4, label: 'Yesterday' },
+  { id: 1, label: "This month" },
+  { id: 2, label: "Last month" },
+  { id: 3, label: "Today" },
+  { id: 4, label: "Yesterday" },
 ];
 
 const timesheet = useTimeSheet();
@@ -38,7 +38,7 @@ const format = (date) => {
 watch([() => selectModal.value], () => {
   switch (selectModal.value.id) {
     case 1:
-      selectedDate.value = [startOfMonth, endOfMonth];
+      // selectedDate.value = [startOfMonth, endOfMonth];
       timesheet.$patch({
         from: startOfMonth,
         to: endOfMonth,
@@ -47,22 +47,22 @@ watch([() => selectModal.value], () => {
     case 2:
       timesheet.$patch({
         from: moment()
-          .subtract(1, 'months')
-          .startOf('month')
-          .format('YYYY-MM-DD'),
-        to: moment().subtract(1, 'months').endOf('month').format('YYYY-MM-DD'),
+          .subtract(1, "months")
+          .startOf("month")
+          .format("YYYY-MM-DD"),
+        to: moment().subtract(1, "months").endOf("month").format("YYYY-MM-DD"),
       });
       break;
     case 3:
       timesheet.$patch({
-        from: moment().format('YYYY-MM-DD'),
-        to: moment().format('YYYY-MM-DD'),
+        from: moment().format("YYYY-MM-DD"),
+        to: moment().format("YYYY-MM-DD"),
       });
       break;
     case 4:
       timesheet.$patch({
-        from: moment().subtract(1, 'day').format('YYYY-MM-DD'),
-        to: moment().subtract(1, 'day').format('YYYY-MM-DD'),
+        from: moment().subtract(1, "day").format("YYYY-MM-DD"),
+        to: moment().subtract(1, "day").format("YYYY-MM-DD"),
       });
       break;
   }
@@ -70,8 +70,8 @@ watch([() => selectModal.value], () => {
 
 const form = reactive({
   chooseFromList: selectOptions[0],
-  from: '',
-  to: '',
+  from: "",
+  to: "",
 });
 
 watch([selectedDate], () => {
