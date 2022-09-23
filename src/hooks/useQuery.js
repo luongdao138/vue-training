@@ -22,6 +22,8 @@ export function useQuery(url, params = {}, options = {}) {
       return;
     }
 
+    console.log({ params: unref(params) });
+
     console.log("Call API: ", unref(url));
 
     isLoading.value = true;
@@ -30,7 +32,7 @@ export function useQuery(url, params = {}, options = {}) {
     let axiosInstance = unref(requiredAuth) ? client : axios;
 
     axiosInstance
-      .get(unref(url), { params })
+      .get(unref(url), { params: unref(params) })
       .then((res) => {
         data.value = res.data;
         isSuccess.value = true;

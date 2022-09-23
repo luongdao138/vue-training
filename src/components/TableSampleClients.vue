@@ -7,6 +7,7 @@ import {
   watch,
   watchEffect,
   provide,
+  nextTick,
 } from "vue";
 import LoadingOverlay from "@/components/LoadingOverlay.vue";
 import { isEmpty } from "lodash";
@@ -21,6 +22,7 @@ import { useQuery } from "@/hooks/useQuery";
 // import { getCurrentDay } from "@/utils/datetime";
 import { useQuasar } from "quasar";
 import ForgetForm from "./Timesheet/ForgetForm.vue";
+import { checkEqualDays } from "@/utils/datetime";
 
 defineProps({
   checkable: Boolean,
@@ -30,6 +32,9 @@ const timesheet = useTimeSheet();
 const state = reactive({
   items: [],
 });
+
+const selectedDay = ref(null);
+
 async function fetchData(from, to) {
   const data = await getTimeSheet({ from: from, to: to });
   state.items = data.data.items;
@@ -77,6 +82,7 @@ const TimeSheetItems = computed(() => {
 });
 
 const isOpenForgetModal = ref(false);
+
 const isDisableForgetBtn = ref(false);
 
 const isModalDangerActive = ref(false);
@@ -120,10 +126,11 @@ const pagesList = computed(() => {
 // timesheet modal
 // Nếu là db thật thì lấy ngày hiện tại
 // vì data chưa đc sync nên fix cứng một ngày
+const timesheetDetailParams = ref({ date: selectedDay.value });
 const { data: timesheetDetail, isLoading: isLoadingDetail } = useQuery(
   // `/timesheet/detail?date=${getCurrentDay()}`,
-  `/timesheet/detail?date=2022-08-02`,
-  {},
+  `/timesheet/detail`,
+  timesheetDetailParams,
   {
     enabled: isOpenForgetModal,
     onSuccess: () => {
@@ -131,6 +138,15 @@ const { data: timesheetDetail, isLoading: isLoadingDetail } = useQuery(
     },
   }
 );
+
+const handleClickForgetBtn = (work_date) => {
+  console.log({ work_date });
+  selectedDay.value = work_date;
+  timesheetDetailParams.value.date = work_date;
+  nextTick(() => {
+    isOpenForgetModal.value = true;
+  });
+};
 
 const isLoading = computed(() => {
   return isLoadingDetail.value;
@@ -161,6 +177,7 @@ provide("timesheetDetail", timesheetDetail);
     :style="{ maxWidth: '700px', width: '100%' }"
   >
     <ForgetForm
+      :selected-date="selectedDay"
       @disable-submit-btn="isDisableForgetBtn = true"
       @enable-submit-btn="isDisableForgetBtn = false"
     />
@@ -248,10 +265,11 @@ provide("timesheetDetail", timesheetDetail);
         <td class="before:hidden lg:w-1 whitespace-nowrap">
           <BaseButtons type="justify-start lg:justify-end" no-wrap>
             <BaseButton
+              :disabled="checkEqualDays(timeSheetItem.work_date, new Date())"
               color="info"
               small
               label="Forget"
-              @click="isOpenForgetModal = true"
+              @click="() => handleClickForgetBtn(timeSheetItem.work_date)"
             />
             <BaseButton
               color="danger"
