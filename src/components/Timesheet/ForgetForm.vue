@@ -190,7 +190,7 @@ watchEffect(() => {
 <template>
   <div v-if="detailData" class="space-y-3 -mb-8">
     <TimeSheetItem label="Register for date">
-      <p>{{ convertDate(detailData?.work_date) }}</p>
+      <p>{{ convertDate(detailData?.work_date, "dddd, DD/MM/YYYY") }}</p>
     </TimeSheetItem>
     <TimeSheetItem label="Manager">
       <p>{{ detailData?.manager_name }}</p>

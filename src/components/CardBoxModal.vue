@@ -13,6 +13,7 @@ import BaseButtons from "@/components/BaseButtons.vue";
 import CardBox from "@/components/CardBox.vue";
 import OverlayLayer from "@/components/OverlayLayer.vue";
 import CardBoxComponentTitle from "@/components/CardBoxComponentTitle.vue";
+import LoadingOverlay from "./LoadingOverlay.vue";
 
 const props = defineProps({
   title: {
@@ -37,6 +38,10 @@ const props = defineProps({
     default: false,
   },
   disableSubmitBtn: {
+    type: Boolean,
+    default: false,
+  },
+  loading: {
     type: Boolean,
     default: false,
   },
@@ -95,26 +100,31 @@ window.addEventListener("keydown", (e) => {
         />
       </CardBoxComponentTitle>
 
-      <div class="space-y-3">
+      <div v-if="!loading" class="space-y-3">
         <slot />
+      </div>
+      <div v-if="loading" class="flex justify-center mt-20 mb-10">
+        <LoadingOverlay />
       </div>
 
       <template #footer>
-        <BaseButtons>
-          <BaseButton
-            :label="buttonLabel"
-            :disabled="disableSubmitBtn"
-            :color="button"
-            @click="onConfirm"
-          />
-          <BaseButton
-            v-if="hasCancel"
-            label="Cancel"
-            :color="button"
-            outline
-            @click="cancel"
-          />
-        </BaseButtons>
+        <div class="flex justify-end">
+          <BaseButtons>
+            <BaseButton
+              :label="buttonLabel"
+              :disabled="disableSubmitBtn"
+              :color="button"
+              @click="onConfirm"
+            />
+            <BaseButton
+              v-if="hasCancel"
+              label="Cancel"
+              :color="button"
+              outline
+              @click="cancel"
+            />
+          </BaseButtons>
+        </div>
       </template>
     </CardBox>
   </OverlayLayer>
