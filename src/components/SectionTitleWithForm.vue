@@ -22,28 +22,23 @@ const selectOptions = [
 
 const timesheet = useTimeSheet();
 const selectModal = ref(selectOptions[0]);
-const endDate = ref(moment(endOfMonth));
-const startDate = ref(moment(startOfMonth));
-const formType = ref('fromList');
+const selectedDate = ref([moment(startOfMonth), moment(endOfMonth)]);
+// watch([() => timesheet.from, () => timesheet.to], (from, to) => {
+//   selectedDate.value = [moment(from), moment(to)];
+// });
 const format = (date) => {
-  const day = date.getDate();
-  const month = date.getMonth() + 1;
-  const year = date.getFullYear();
-
-  return `${year}-${month}-${day}`;
-};
-const onSubmit = () => {
-  if (formType.value == 'startEnd') {
-    timesheet.$patch({
-      from: format(moment(startDate.value).toDate()),
-      to: format(moment(endDate.value).toDate()),
-    });
-  }
+  return date.map((date) => {
+    const day = date.getDate();
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+    return `${year}-${month}-${day}`;
+  });
 };
 
 watch([() => selectModal.value], () => {
   switch (selectModal.value.id) {
     case 1:
+      selectedDate.value = [startOfMonth, endOfMonth];
       timesheet.$patch({
         from: startOfMonth,
         to: endOfMonth,
@@ -78,9 +73,13 @@ const form = reactive({
   from: '',
   to: '',
 });
-const disableSelect = () => {
-  return formType.value !== 'fromList';
-};
+
+watch([selectedDate], () => {
+  console.log(selectedDate.value);
+  const submitData = format(selectedDate.value);
+  timesheet.$patch({ from: submitData[0], to: submitData[1] });
+  // return format(selectedDate);
+});
 </script>
 
 <template>
@@ -111,32 +110,41 @@ const disableSelect = () => {
         @submit="onSubmit"
         @reset="onReset"
       >
-        <div class="row">
-          <q-radio
+        <div class="row justify-start">
+          <!-- <q-radio
             v-model="formType"
             left-label
             val="fromList"
             class="radio-btn justify-between"
             label="Choose from list:"
-          ></q-radio>
+          ></q-radio> -->
           <q-select
             v-model="selectModal"
-            style="min-width: 200px"
-            class="q-ml-sm"
-            :disable="disableSelect()"
+            class="q-mt-sm"
             outlined
+            dense
             :options="selectOptions"
             :option-value="id"
             :option-label="label"
             map-options
             emit-value
           >
-            <!-- <template #prepend>
-              <q-icon name="name"></q-icon>
-            </template> -->
+            <template v-slot:prepend>
+              <q-icon name="event"></q-icon>
+            </template>
           </q-select>
+          <div class="q-mt-sm row q-ml-lg">
+            <Datepicker v-model="selectedDate" range :format="format" />
+            <!-- <q-btn
+              label="Search"
+              type="submit"
+              color="secondary"
+              glossy
+              class="q-ml-lg"
+            ></q-btn> -->
+          </div>
         </div>
-        <div class="row">
+        <!-- <div class="row">
           <q-radio
             v-model="formType"
             left-label
@@ -144,12 +152,6 @@ const disableSelect = () => {
             class="radio-btn justify-between"
             label="Choose start, end:"
           ></q-radio>
-          <Datepicker
-            v-model="startDate"
-            :format="format"
-            class="q-ml-sm"
-            :disabled="!disableSelect()"
-          />
         </div>
         <div class="row">
           <Datepicker
@@ -159,16 +161,8 @@ const disableSelect = () => {
             class="q-ml-sm"
             style="padding-left: 180px"
           />
-        </div>
-        <div class="row justify-center">
-          <q-btn
-            label="Search"
-            type="submit"
-            color="primary"
-            flat
-            class="q-mb-lg"
-          ></q-btn>
-        </div>
+        </div> -->
+        <div class="row justify-center"></div>
       </q-form>
     </section>
   </section>
