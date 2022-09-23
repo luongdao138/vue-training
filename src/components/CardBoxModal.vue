@@ -1,3 +1,10 @@
+<script>
+// use normal <script> to declare options
+export default {
+  inheritAttrs: false,
+};
+</script>
+
 <script setup>
 import { computed } from "vue";
 import { mdiClose } from "@mdi/js";
@@ -25,6 +32,14 @@ const props = defineProps({
     type: [String, Number, Boolean],
     default: null,
   },
+  confirmOnClickOverlay: {
+    type: Boolean,
+    default: false,
+  },
+  disableSubmitBtn: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits(["update:modelValue", "cancel", "confirm"]);
@@ -39,9 +54,20 @@ const confirmCancel = (mode) => {
   emit(mode);
 };
 
-const confirm = () => confirmCancel("confirm");
+const onConfirm = () => confirmCancel("confirm");
 
 const cancel = () => confirmCancel("cancel");
+
+const onClose = () => {
+  if (!props.confirmOnClickOverlay) {
+    cancel();
+    return;
+  }
+
+  if (confirm("Close this form")) {
+    cancel();
+  }
+};
 
 window.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && value.value) {
@@ -51,13 +77,14 @@ window.addEventListener("keydown", (e) => {
 </script>
 
 <template>
-  <OverlayLayer v-show="value" @overlay-click="cancel">
+  <OverlayLayer v-show="value" @overlay-click="onClose">
     <CardBox
       v-show="value"
       class="shadow-lg max-h-modal w-11/12 md:w-3/5 lg:w-2/5 xl:w-4/12 z-50"
       is-modal
+      :style="$attrs.style"
     >
-      <CardBoxComponentTitle :title="title">
+      <CardBoxComponentTitle class="font-semibold" :title="title">
         <BaseButton
           v-if="hasCancel"
           :icon="mdiClose"
@@ -74,7 +101,12 @@ window.addEventListener("keydown", (e) => {
 
       <template #footer>
         <BaseButtons>
-          <BaseButton :label="buttonLabel" :color="button" @click="confirm" />
+          <BaseButton
+            :label="buttonLabel"
+            :disabled="disableSubmitBtn"
+            :color="button"
+            @click="onConfirm"
+          />
           <BaseButton
             v-if="hasCancel"
             label="Cancel"

@@ -1,17 +1,27 @@
 <script setup>
-import { computed, ref, reactive, onMounted, watch } from 'vue';
-import { getTimeSheet } from '@/services/timesheet';
-import { mdiEye, mdiTrashCan } from '@mdi/js';
-import CardBoxModal from '@/components/CardBoxModal.vue';
-import BaseLevel from '@/components/BaseLevel.vue';
-import BaseButtons from '@/components/BaseButtons.vue';
-import BaseButton from '@/components/BaseButton.vue';
-import LoadingOverlay from '@/components/LoadingOverlay.vue';
-import moment from 'moment';
-import CardBoxComponentEmpty from '@/components/CardBoxComponentEmpty.vue';
-import { isEmpty } from 'lodash';
+import {
+  computed,
+  ref,
+  reactive,
+  onMounted,
+  watch,
+  watchEffect,
+  provide,
+} from "vue";
+import LoadingOverlay from "@/components/LoadingOverlay.vue";
+import { isEmpty } from "lodash";
+import { startOfMonth, endOfMonth, useTimeSheet } from "@/stores/timesheet";
+import CardBoxModal from "@/components/CardBoxModal.vue";
+import BaseLevel from "@/components/BaseLevel.vue";
+import BaseButtons from "@/components/BaseButtons.vue";
+import BaseButton from "@/components/BaseButton.vue";
+import moment from "moment";
+import { getTimeSheet } from "@/services/timesheet";
+import { useQuery } from "@/hooks/useQuery";
+// import { getCurrentDay } from "@/utils/datetime";
+import { useQuasar } from "quasar";
+import ForgetForm from "./Timesheet/ForgetForm.vue";
 
-import { startOfMonth, endOfMonth, useTimeSheet } from '@/stores/timesheet';
 defineProps({
   checkable: Boolean,
 });
@@ -37,8 +47,8 @@ const getDaysArray = function () {
   var date = moment(timesheet.from).clone();
   var result = [];
   while (date.isSameOrBefore(timesheet.to)) {
-    result.push({ work_date: moment(date).format('YYYY-MM-DD') });
-    date.add(1, 'days');
+    result.push({ work_date: moment(date).format("YYYY-MM-DD") });
+    date.add(1, "days");
   }
   return result;
 };
@@ -52,7 +62,8 @@ const TimeSheetItems = computed(() => {
         }
       }
       return items;
-    }), state.items
+    }),
+    state.items
   );
   return getDaysArray().map((items) => {
     for (let item of state.items) {
@@ -65,7 +76,8 @@ const TimeSheetItems = computed(() => {
   // return [...state.items];
 });
 
-const isModalActive = ref(false);
+const isOpenForgetModal = ref(false);
+const isDisableForgetBtn = ref(false);
 
 const isModalDangerActive = ref(false);
 
@@ -83,6 +95,9 @@ const itemsPaginated = computed(() =>
     perPage.value * (currentPage.value + 1)
   )
 );
+const $q = useQuasar();
+
+// thông tin detail của ngày được chọn
 
 const currentPageHuman = computed(() => currentPage.value + 1);
 
@@ -95,12 +110,54 @@ const pagesList = computed(() => {
 
   return pagesList;
 });
+
+// timesheet modal
+// Nếu là db thật thì lấy ngày hiện tại
+// vì data chưa đc sync nên fix cứng một ngày
+const { data: timesheetDetail, isLoading: isLoadingDetail } = useQuery(
+  // `/timesheet/detail?date=${getCurrentDay()}`,
+  `/timesheet/detail?date=2022-08-02`,
+  {},
+  {
+    enabled: isOpenForgetModal,
+    onSuccess: () => {
+      console.log("Fetch success");
+    },
+  }
+);
+
+const isLoading = computed(() => {
+  return isLoadingDetail.value;
+});
+
+// Chỉ show loading khi đang gọi API, gọi API xong thì hide loading
+watchEffect(() => {
+  if (isLoading.value) {
+    $q.loading.show();
+  } else {
+    $q.loading.hide();
+  }
+});
+
+// provide
+provide("timesheetDetail", timesheetDetail);
 </script>
 
 <template>
-  <CardBoxModal v-model="isModalActive" title="Sample modal">
-    <p>Lorem ipsum dolor sit amet <b>adipiscing elit</b></p>
-    <p>This is sample modal</p>
+  <CardBoxModal
+    v-if="!isLoadingDetail"
+    v-model="isOpenForgetModal"
+    has-cancel
+    confirm-on-click-overlay
+    title="Register forget check finger print"
+    button-label="Register"
+    :disable-submit-btn="isDisableForgetBtn"
+    :style="{ maxWidth: '700px', width: '100%' }"
+  >
+    <ForgetForm
+      @disable-submit-btn="isDisableForgetBtn = true"
+      @enable-submit-btn="isDisableForgetBtn = false"
+    />
   </CardBoxModal>
 
   <CardBoxModal
@@ -155,15 +212,15 @@ const pagesList = computed(() => {
         <td data-label="checkin" class="text-red-3 text-center">
           {{
             !isEmpty(timeSheetItem.checkin)
-              ? moment(timeSheetItem.checkin).format('HH:MM')
-              : ''
+              ? moment(timeSheetItem.checkin).format("HH:MM")
+              : ""
           }}
         </td>
         <td data-label="checkout" class="text-center">
           {{
             !isEmpty(timeSheetItem.checkout)
-              ? moment(timeSheetItem.checkout).format('HH:MM')
-              : ''
+              ? moment(timeSheetItem.checkout).format("HH:MM")
+              : ""
           }}
         </td>
         <td data-label="late_time" class="text-center text-red-3">
@@ -189,13 +246,19 @@ const pagesList = computed(() => {
           <BaseButtons type="justify-start lg:justify-end" no-wrap>
             <BaseButton
               color="info"
-              :icon="mdiEye"
               small
-              @click="isModalActive = true"
+              label="Forget"
+              @click="isOpenForgetModal = true"
             />
             <BaseButton
               color="danger"
-              :icon="mdiTrashCan"
+              label="Late/Early"
+              small
+              @click="isModalDangerActive = true"
+            />
+            <BaseButton
+              color="success"
+              label="Leave"
               small
               @click="isModalDangerActive = true"
             />

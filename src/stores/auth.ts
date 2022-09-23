@@ -1,16 +1,21 @@
-import { getCurrentUser } from '@/services/auth';
-import { AuthUser } from '@/services/auth';
-import { defineStore } from 'pinia';
+import { getCurrentUser } from "@/services/auth";
+import { AuthUser } from "@/services/auth";
+import { defineStore } from "pinia";
 
 export interface AuthState {
   user: AuthUser | null;
 }
 
-export const useAuth = defineStore('auth', {
-  state(): AuthState {
+export const useAuth = defineStore("auth", {
+  state: (): AuthState => {
     return {
       user: null,
     };
+  },
+  getters: {
+    is_authenticated(): boolean {
+      return Boolean(this.user);
+    },
   },
   actions: {
     loginSuccess(user: AuthUser) {
@@ -24,8 +29,5 @@ export const useAuth = defineStore('auth', {
         console.log(error);
       }
     },
-  },
-  getters() {
-    is_authenticated: (): boolean => Boolean(this.user);
   },
 });

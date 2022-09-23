@@ -1,12 +1,11 @@
 <script setup>
-import LayoutAuthenticated from '@/layouts/LayoutAuthenticated.vue';
-import SectionMain from '@/components/SectionMain.vue';
-import TableSampleClients from '@/components/TableSampleClients.vue';
-import CardBox from '@/components/CardBox.vue';
-import SectionTitleWithForm from '@/components/SectionTitleWithForm.vue'
-
-
+import LayoutAuthenticated from "@/layouts/LayoutAuthenticated.vue";
+import SectionMain from "@/components/SectionMain.vue";
+import TableSampleClients from "@/components/TableSampleClients.vue";
+import CardBox from "@/components/CardBox.vue";
+import SectionTitleWithForm from "@/components/SectionTitleWithForm.vue";
 </script>
+
 <template>
   <LayoutAuthenticated>
     <SectionMain>
@@ -22,8 +21,6 @@ import SectionTitleWithForm from '@/components/SectionTitleWithForm.vue'
       </CardBox>
 
       <!-- <SectionTitleLineWithButton :icon="mdiTableOff" title="Empty variation" /> -->
-
-
     </SectionMain>
   </LayoutAuthenticated>
 </template>
