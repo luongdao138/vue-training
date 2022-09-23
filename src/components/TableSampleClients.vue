@@ -33,7 +33,7 @@ const state = reactive({
 async function fetchData(from, to) {
   const data = await getTimeSheet({ from: from, to: to });
   state.items = data.data.items;
-  timesheet.$patch({ loading: false });
+  timesheet.$patch({ loading: false, items: state.items });
 }
 onMounted(() => {
   fetchData(startOfMonth, endOfMonth);
@@ -98,6 +98,12 @@ const itemsPaginated = computed(() =>
 const $q = useQuasar();
 
 // thông tin detail của ngày được chọn
+// const itemsPaginated = computed(() =>
+//   TimeSheetItems.value.slice(
+//     perPage.value * currentPage.value,
+//     perPage.value * (currentPage.value + 1)
+//   )
+// );
 
 const currentPageHuman = computed(() => currentPage.value + 1);
 
@@ -201,10 +207,7 @@ provide("timesheetDetail", timesheetDetail);
       </td>
     </tbody> -->
     <tbody v-else>
-      <tr
-        v-for="(timeSheetItem, index) in itemsPaginated"
-        :key="timeSheetItem.id"
-      >
+      <tr v-for="(timeSheetItem, index) in state.items" :key="timeSheetItem.id">
         <td class="text-center border-b-0 lg:w-4">{{ index + 1 }}</td>
         <td class="text-center lg:w-24" data-label="work_date">
           {{ timeSheetItem.work_date }}
