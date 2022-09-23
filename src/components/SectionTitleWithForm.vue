@@ -35,36 +35,44 @@ const format = (date) => {
   });
 };
 
+const setSelectedDate = (from, to) => {
+  selectedDate.value[0] = moment(from);
+  selectedDate.value[1] = moment(to);
+  timesheet.$patch({
+    from: from,
+    to: to,
+  });
+};
+
 watch([() => selectModal.value], () => {
   switch (selectModal.value.id) {
     case 1:
-      // selectedDate.value = [startOfMonth, endOfMonth];
-      timesheet.$patch({
-        from: startOfMonth,
-        to: endOfMonth,
-      });
+      setSelectedDate(startOfMonth, endOfMonth);
       break;
-    case 2:
-      timesheet.$patch({
-        from: moment()
-          .subtract(1, "months")
-          .startOf("month")
-          .format("YYYY-MM-DD"),
-        to: moment().subtract(1, "months").endOf("month").format("YYYY-MM-DD"),
-      });
+    case 2: {
+      const from = moment()
+        .subtract(1, "months")
+        .startOf("month")
+        .format("YYYY-MM-DD");
+      const to = moment()
+        .subtract(1, "months")
+        .endOf("month")
+        .format("YYYY-MM-DD");
+      setSelectedDate(from, to);
       break;
-    case 3:
-      timesheet.$patch({
-        from: moment().format("YYYY-MM-DD"),
-        to: moment().format("YYYY-MM-DD"),
-      });
+    }
+    case 3: {
+      const from = moment().format("YYYY-MM-DD");
+      const to = moment().format("YYYY-MM-DD");
+      setSelectedDate(from, to);
       break;
-    case 4:
-      timesheet.$patch({
-        from: moment().subtract(1, "day").format("YYYY-MM-DD"),
-        to: moment().subtract(1, "day").format("YYYY-MM-DD"),
-      });
+    }
+    case 4: {
+      const from = moment().subtract(1, "day").format("YYYY-MM-DD");
+      const to = moment().subtract(1, "day").format("YYYY-MM-DD");
+      setSelectedDate(from, to);
       break;
+    }
   }
 });
 
@@ -75,7 +83,7 @@ const form = reactive({
 });
 
 watch([selectedDate], () => {
-  console.log(selectedDate.value);
+  selectModal.value = { id: "", label: "" };
   const submitData = format(selectedDate.value);
   timesheet.$patch({ from: submitData[0], to: submitData[1] });
   // return format(selectedDate);
@@ -123,6 +131,7 @@ watch([selectedDate], () => {
             class="q-mt-sm"
             outlined
             dense
+            @reset="reset"
             :options="selectOptions"
             :option-value="id"
             :option-label="label"
