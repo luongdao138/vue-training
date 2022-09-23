@@ -118,40 +118,38 @@ watch([selectedDate], () => {
         @submit="onSubmit"
         @reset="onReset"
       >
-        <div class="row justify-start">
-          <!-- <q-radio
-            v-model="formType"
-            left-label
-            val="fromList"
-            class="radio-btn justify-between"
-            label="Choose from list:"
-          ></q-radio> -->
-          <q-select
-            v-model="selectModal"
-            class="q-mt-sm"
-            outlined
-            dense
-            @reset="reset"
-            :options="selectOptions"
-            :option-value="id"
-            :option-label="label"
-            map-options
-            emit-value
-          >
-            <template v-slot:prepend>
-              <q-icon name="event"></q-icon>
-            </template>
-          </q-select>
-          <div class="q-mt-sm row q-ml-lg">
-            <Datepicker v-model="selectedDate" range :format="format" />
-            <!-- <q-btn
-              label="Search"
-              type="submit"
-              color="secondary"
-              glossy
-              class="q-ml-lg"
-            ></q-btn> -->
+        <div class="row justify-between">
+          <div class="row justify-start">
+            <q-select
+              v-model="selectModal"
+              class="q-mt-sm"
+              outlined
+              dense
+              :options="selectOptions"
+              :option-value="id"
+              :option-label="label"
+              map-options
+              emit-value
+            >
+              <template #prepend>
+                <q-icon name="event"></q-icon>
+              </template>
+            </q-select>
+            <div class="q-mt-sm row q-ml-lg">
+              <Datepicker v-model="selectedDate" range :format="format" />
+            </div>
           </div>
+          <q-input
+            v-model="search"
+            debounce="500"
+            type="search"
+            dense
+            placeholder="Search"
+          >
+            <template #append>
+              <q-icon class="cursor-pointer border-none" name="search"></q-icon>
+            </template>
+          </q-input>
         </div>
         <!-- <div class="row">
           <q-radio

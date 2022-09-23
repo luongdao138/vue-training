@@ -23,6 +23,7 @@ import ForgetForm from "./Timesheet/ForgetForm.vue";
 import { checkEqualDays } from "@/utils/datetime";
 import LateEarlyForm from "./Timesheet/LateEarlyForm.vue";
 
+import CardBoxComponentEmpty from "@/components/CardBoxComponentEmpty.vue";
 defineProps({
   checkable: Boolean,
 });
@@ -152,6 +153,12 @@ const handleClickLateEarlyBtn = (work_date) => {
 
 // provide
 provide("timesheetDetail", timesheetDetail);
+const getDaysOfWeek = function (date) {
+  return date.concat(
+    " | ",
+    moment(date, "YYYY-MM-DD").format("dddd").substring(0, 3)
+  );
+};
 </script>
 
 <template>
@@ -197,7 +204,7 @@ provide("timesheetDetail", timesheetDetail);
       <tr>
         <!-- <th> -->
         <th class="text-center border-b-0 lg:w-4">No</th>
-        <th class="text-center lg:w-24">Date</th>
+        <th class="text-center lg:w-40">Date</th>
         <th class="text-center">Checkin</th>
         <th class="text-center">Checkout</th>
         <th class="text-center">Late</th>
@@ -207,27 +214,27 @@ provide("timesheetDetail", timesheetDetail);
         <th class="text-center">Work time</th>
         <th class="text-center">Lack</th>
         <th class="text-center">Admin note</th>
-        <th>Action</th>
+        <th class="text-center">Action</th>
         <!-- <th /> -->
       </tr>
     </thead>
     <tbody v-if="timesheet.loading">
       <td colspan="100%" class="justify-center" style="height: 300px">
-        <LoadingOverlay style="margin-left: 46%" />
+        <LoadingOverlay style="margin: auto" />
       </td>
     </tbody>
-    <!-- <tbody v-else-if="!timesheet.loading & isEmpty(state.items)">
+    <tbody v-else-if="!timesheet.loading & isEmpty(state.items)">
       <td colspan="100%" class="justify-center" style="height: 300px">
         <CardBox>
           <CardBoxComponentEmpty />
         </CardBox>
       </td>
-    </tbody> -->
+    </tbody>
     <tbody v-else>
       <tr v-for="(timeSheetItem, index) in state.items" :key="timeSheetItem.id">
         <td class="text-center border-b-0 lg:w-4">{{ index + 1 }}</td>
-        <td class="text-center lg:w-24" data-label="work_date">
-          {{ timeSheetItem.work_date }}
+        <td class="text-start" data-label="work_date">
+          {{ getDaysOfWeek(timeSheetItem.work_date) }}
         </td>
         <td data-label="checkin" class="text-red-3 text-center">
           {{
@@ -258,7 +265,10 @@ provide("timesheetDetail", timesheetDetail);
         <td data-label="work_time" class="text-center whitespace-nowrap">
           {{ timeSheetItem.work_time }}
         </td>
-        <td data-label="lack_time" class="text-center whitespace-nowrap">
+        <td
+          data-label="lack_time"
+          class="text-center text-red-3 whitespace-nowrap"
+        >
           {{ timeSheetItem.lack_time }}
         </td>
         <td></td>
