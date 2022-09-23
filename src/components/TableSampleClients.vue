@@ -59,17 +59,17 @@ const getDaysArray = function () {
 };
 
 const TimeSheetItems = computed(() => {
-  console.log(
-    getDaysArray().map((items) => {
-      for (let item of state.items) {
-        if (items.work_date == item.work_date) {
-          items = { ...items, ...item };
-        }
-      }
-      return items;
-    }),
-    state.items
-  );
+  // console.log(
+  //   getDaysArray().map((items) => {
+  //     for (let item of state.items) {
+  //       if (items.work_date == item.work_date) {
+  //         items = { ...items, ...item };
+  //       }
+  //     }
+  //     return items;
+  //   }),
+  //   state.items
+  // );
   return getDaysArray().map((items) => {
     for (let item of state.items) {
       if (items.work_date == item.work_date) {
