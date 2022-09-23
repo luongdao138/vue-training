@@ -77,6 +77,7 @@ const TimeSheetItems = computed(() => {
 });
 
 const isOpenForgetModal = ref(false);
+const isDisableForgetBtn = ref(false);
 
 const isModalDangerActive = ref(false);
 
@@ -109,29 +110,6 @@ const pagesList = computed(() => {
 
   return pagesList;
 });
-
-const remove = (arr, cb) => {
-  const newArr = [];
-
-  arr.forEach((item) => {
-    if (!cb(item)) {
-      newArr.push(item);
-    }
-  });
-
-  return newArr;
-};
-
-const checked = (isChecked, client) => {
-  if (isChecked) {
-    checkedRows.value.push(client);
-  } else {
-    checkedRows.value = remove(
-      checkedRows.value,
-      (row) => row.id === client.id
-    );
-  }
-};
 
 // timesheet modal
 // Nếu là db thật thì lấy ngày hiện tại
@@ -173,9 +151,13 @@ provide("timesheetDetail", timesheetDetail);
     confirm-on-click-overlay
     title="Register forget check finger print"
     button-label="Register"
+    :disable-submit-btn="isDisableForgetBtn"
     :style="{ maxWidth: '700px', width: '100%' }"
   >
-    <ForgetForm />
+    <ForgetForm
+      @disable-submit-btn="isDisableForgetBtn = true"
+      @enable-submit-btn="isDisableForgetBtn = false"
+    />
   </CardBoxModal>
 
   <CardBoxModal

@@ -1,16 +1,15 @@
 <script setup>
-import { computed, inject, ref, watch, watchEffect } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import TimePicker from "../TimePicker.vue";
 import Checkbox from "../Checkbox.vue";
 import TimeSheetItem from "./TimeSheetItem.vue";
 import TextArea from "../TextArea.vue";
-import { convertDate, compareDateVsSetting } from "@/utils/datetime";
+import { convertDate, compareTwoTime, changeTime } from "@/utils/datetime";
 import { storeToRefs } from "pinia";
 import { useAuth } from "@/stores/auth";
 import { MAX_REQUEST } from "@/constants/timesheet";
 
-// temporary
-const right = ref(false);
+const emit = defineEmits(["disableSubmitBtn", "enableSubmitBtn"]);
 
 // Lấy thông tin timesheet detail từ component cha
 const timesheetDetail = inject("timesheetDetail");
@@ -18,29 +17,10 @@ const timesheetDetail = inject("timesheetDetail");
 const authStore = useAuth();
 const { user } = storeToRefs(authStore);
 const detailData = computed(() => timesheetDetail.value?.data);
-const isValidCheckinTime = computed(() => {
-  return compareDateVsSetting(
-    detailData.value.checkin,
-    user.value.checkin_setting,
-    "<="
-  );
-});
-const isValidCheckoutTime = computed(() => {
-  return compareDateVsSetting(
-    detailData.value.checkout,
-    user.value.checkout_setting,
-    ">="
-  );
-});
-
-const isCheckinChange = computed(() => {
-  return checkinTime.value !== convertDate(detailData.value?.checkin, "HH:mm");
-});
-const isCheckoutChange = computed(() => {
-  return (
-    checkoutTime.value !== convertDate(detailData.value?.checkout, "HH:mm")
-  );
-});
+// const detailData = computed(() => ({
+//   checkin: "2022-08-02 08:36:46",
+//   checkout: "2022-08-02 17:24:46",
+// }));
 
 const reason = ref("");
 const countedError = ref(0);
@@ -50,6 +30,14 @@ const isCheckinChecked = ref(false);
 const isCheckoutChecked = ref(false);
 const skipErrorCheckin = ref(false);
 const skipErrorCheckout = ref(false);
+const error = ref(null);
+
+const formattedCheckinTime = computed(() =>
+  convertDate(detailData.value?.checkin, "HH:mm")
+);
+const formattedCheckoutTime = computed(() =>
+  convertDate(detailData.value?.checkout, "HH:mm")
+);
 
 watch(
   () => ({ ...detailData.value }),
@@ -59,29 +47,11 @@ watch(
   }
 );
 
-// const handleChangeTime = (newTime, oldTime, comparedValue) => {
-//   console.log({ newTime, oldTime });
-//   if (oldTime === convertDate(comparedValue, "HH:mm")) {
-//     countedError.value++;
-//   }
-
-//   if (newTime === convertDate(comparedValue, "HH:mm")) {
-//     countedError.value--;
-//   }
-// };
-
-// watch(checkinTime, (newTime, oldTime) =>
-//   handleChangeTime(newTime, oldTime, detailData.value?.checkin)
-// );
-// watch(checkoutTime, (newTime, oldTime) =>
-//   handleChangeTime(newTime, oldTime, detailData.value?.checkout)
-// );
-
 watch(isCheckinChecked, (newVal) => {
   if (newVal) {
     checkinTime.value = checkinLabel.value;
   } else {
-    checkinTime.value = convertDate(detailData.value.checkin, "HH:mm");
+    checkinTime.value = formattedCheckinTime.value;
   }
 });
 
@@ -89,20 +59,117 @@ watch(isCheckoutChecked, (newVal) => {
   if (newVal) {
     checkoutTime.value = checkoutLabel.value;
   } else {
-    checkoutTime.value = convertDate(detailData.value.checkout, "HH:mm");
+    checkoutTime.value = formattedCheckoutTime.value;
   }
 });
 
+watch(
+  [checkinTime, skipErrorCheckin],
+  ([newTime, newChange], [oldTime, oldChange]) => {
+    if (newChange === oldChange) {
+      if (newTime === formattedCheckinTime.value) {
+        if (!newChange) {
+          countedError.value--;
+        }
+
+        skipErrorCheckin.value = false;
+      }
+      if (oldTime === formattedCheckinTime.value && !newChange) {
+        countedError.value++;
+      }
+    } else {
+      if (newTime !== formattedCheckinTime.value) {
+        if (!newChange) {
+          countedError.value++;
+        } else {
+          countedError.value--;
+        }
+      }
+    }
+  }
+);
+watch(
+  [checkoutTime, skipErrorCheckout],
+  ([newTime, newChange], [oldTime, oldChange]) => {
+    if (newChange === oldChange) {
+      if (newTime === formattedCheckoutTime.value) {
+        if (!newChange) {
+          countedError.value--;
+        }
+        skipErrorCheckout.value = false;
+      }
+      if (oldTime === formattedCheckoutTime.value && !newChange) {
+        countedError.value++;
+      }
+    } else {
+      if (newTime !== formattedCheckoutTime.value) {
+        if (!newChange) {
+          countedError.value++;
+        } else {
+          countedError.value--;
+        }
+      }
+    }
+  }
+);
+
+watch(
+  [checkinTime, checkoutTime],
+  ([newCheckinTime, newCheckoutTime]) => {
+    if (compareTwoTime(newCheckinTime, newCheckoutTime, ">=")) {
+      error.value = "check in must snaller than checkout";
+      emit("disableSubmitBtn");
+    } else {
+      error.value = null;
+      emit("enableSubmitBtn");
+    }
+  },
+  { immediate: true }
+);
+
 const checkinLabel = computed(() => {
   return isValidCheckinTime.value
-    ? convertDate(detailData.value.checkin, "HH:mm")
+    ? formattedCheckinTime.value
     : user.value.checkin_setting;
 });
 
 const checkoutLabel = computed(() => {
   return isValidCheckoutTime.value
-    ? convertDate(detailData.value.checkout, "HH:mm")
+    ? formattedCheckoutTime.value
     : user.value.checkout_setting;
+});
+
+const isValidCheckinTime = computed(() => {
+  // return compareDateVsSetting(
+  //   detailData.value.checkin,
+  //   user.value.checkin_setting,
+  //   "<="
+  // );
+  return compareTwoTime(
+    formattedCheckinTime.value,
+    changeTime(user.value.checkin_setting, 5),
+    "<="
+  );
+});
+const isValidCheckoutTime = computed(() => {
+  // return compareDateVsSetting(
+  //   detailData.value.checkout,
+  //   user.value.checkout_setting,
+  //   ">="
+  // );
+
+  return compareTwoTime(
+    formattedCheckoutTime.value,
+    changeTime(user.value.checkout_setting, -5),
+    ">="
+  );
+});
+
+const isCheckinChange = computed(() => {
+  return checkinTime.value !== formattedCheckinTime.value;
+});
+const isCheckoutChange = computed(() => {
+  return checkoutTime.value !== formattedCheckoutTime.value;
 });
 </script>
 
@@ -164,7 +231,7 @@ const checkoutLabel = computed(() => {
       <TextArea v-model="reason" />
     </TimeSheetItem>
     <div>
-      <span class="text-red-500 font-medium text-xs"
+      <span v-if="Boolean(error)" class="text-red-500 font-medium text-xs"
         >checkin must smaller than checkout</span
       >
       <p class="text-red-500 font-semibold">
