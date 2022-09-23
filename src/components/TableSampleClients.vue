@@ -5,7 +5,6 @@ import {
   reactive,
   onMounted,
   watch,
-  watchEffect,
   provide,
   nextTick,
 } from "vue";
@@ -20,9 +19,9 @@ import moment from "moment";
 import { getTimeSheet } from "@/services/timesheet";
 import { useQuery } from "@/hooks/useQuery";
 // import { getCurrentDay } from "@/utils/datetime";
-import { useQuasar } from "quasar";
 import ForgetForm from "./Timesheet/ForgetForm.vue";
 import { checkEqualDays } from "@/utils/datetime";
+import LateEarlyForm from "./Timesheet/LateEarlyForm.vue";
 
 defineProps({
   checkable: Boolean,
@@ -32,8 +31,6 @@ const timesheet = useTimeSheet();
 const state = reactive({
   items: [],
 });
-
-const selectedDay = ref(null);
 
 async function fetchData(from, to) {
   const data = await getTimeSheet({ from: from, to: to });
@@ -82,6 +79,7 @@ const TimeSheetItems = computed(() => {
 });
 
 const isOpenForgetModal = ref(false);
+const isOpenLateEarlyModal = ref(false);
 
 const isDisableForgetBtn = ref(false);
 
@@ -95,13 +93,12 @@ const numPages = computed(() =>
   Math.ceil(TimeSheetItems.value.length / perPage.value)
 );
 
-const itemsPaginated = computed(() =>
-  TimeSheetItems.value.slice(
-    perPage.value * currentPage.value,
-    perPage.value * (currentPage.value + 1)
-  )
-);
-const $q = useQuasar();
+// const itemsPaginated = computed(() =>
+//   TimeSheetItems.value.slice(
+//     perPage.value * currentPage.value,
+//     perPage.value * (currentPage.value + 1)
+//   )
+// );
 
 // thông tin detail của ngày được chọn
 // const itemsPaginated = computed(() =>
@@ -126,7 +123,7 @@ const pagesList = computed(() => {
 // timesheet modal
 // Nếu là db thật thì lấy ngày hiện tại
 // vì data chưa đc sync nên fix cứng một ngày
-const timesheetDetailParams = ref({ date: selectedDay.value });
+const timesheetDetailParams = ref({ date: null });
 const { data: timesheetDetail, isLoading: isLoadingDetail } = useQuery(
   // `/timesheet/detail?date=${getCurrentDay()}`,
   `/timesheet/detail`,
@@ -140,26 +137,18 @@ const { data: timesheetDetail, isLoading: isLoadingDetail } = useQuery(
 );
 
 const handleClickForgetBtn = (work_date) => {
-  console.log({ work_date });
-  selectedDay.value = work_date;
   timesheetDetailParams.value.date = work_date;
   nextTick(() => {
     isOpenForgetModal.value = true;
   });
 };
 
-const isLoading = computed(() => {
-  return isLoadingDetail.value;
-});
-
-// Chỉ show loading khi đang gọi API, gọi API xong thì hide loading
-watchEffect(() => {
-  if (isLoading.value) {
-    $q.loading.show();
-  } else {
-    $q.loading.hide();
-  }
-});
+const handleClickLateEarlyBtn = (work_date) => {
+  timesheetDetailParams.value.date = work_date;
+  nextTick(() => {
+    isOpenLateEarlyModal.value = true;
+  });
+};
 
 // provide
 provide("timesheetDetail", timesheetDetail);
@@ -167,8 +156,8 @@ provide("timesheetDetail", timesheetDetail);
 
 <template>
   <CardBoxModal
-    v-if="!isLoadingDetail"
     v-model="isOpenForgetModal"
+    :loading="isLoadingDetail"
     has-cancel
     confirm-on-click-overlay
     title="Register forget check finger print"
@@ -181,6 +170,17 @@ provide("timesheetDetail", timesheetDetail);
       @disable-submit-btn="isDisableForgetBtn = true"
       @enable-submit-btn="isDisableForgetBtn = false"
     />
+  </CardBoxModal>
+
+  <CardBoxModal
+    v-model="isOpenLateEarlyModal"
+    title="Register Late/Early"
+    confirm-on-click-overlay
+    button-label="Register"
+    has-cancel
+    :style="{ maxWidth: '700px', width: '100%' }"
+  >
+    <LateEarlyForm />
   </CardBoxModal>
 
   <CardBoxModal
@@ -275,7 +275,7 @@ provide("timesheetDetail", timesheetDetail);
               color="danger"
               label="Late/Early"
               small
-              @click="isModalDangerActive = true"
+              @click="() => handleClickLateEarlyBtn(timeSheetItem.work_date)"
             />
             <BaseButton
               color="success"
