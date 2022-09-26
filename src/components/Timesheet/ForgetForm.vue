@@ -9,12 +9,7 @@ import { storeToRefs } from "pinia";
 import { useAuth } from "@/stores/auth";
 import { MAX_REQUEST } from "@/constants/timesheet";
 
-defineProps({
-  selectedDate: {
-    type: String,
-    default: "",
-  },
-});
+defineProps({});
 
 const emit = defineEmits(["disableSubmitBtn", "enableSubmitBtn"]);
 
