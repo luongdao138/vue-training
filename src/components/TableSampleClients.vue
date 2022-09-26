@@ -20,7 +20,7 @@ import { getTimeSheet } from "@/services/timesheet";
 import { useQuery } from "@/hooks/useQuery";
 // import { getCurrentDay } from "@/utils/datetime";
 import ForgetForm from "./Timesheet/ForgetForm.vue";
-import { checkEqualDays } from "@/utils/datetime";
+import { checkEqualDays, checkZeroTime } from "@/utils/datetime";
 import LateEarlyForm from "./Timesheet/LateEarlyForm.vue";
 
 import CardBoxComponentEmpty from "@/components/CardBoxComponentEmpty.vue";
@@ -121,6 +121,10 @@ const pagesList = computed(() => {
   return pagesList;
 });
 
+const isEnabledGetTimesheetDetail = computed(() => {
+  return isOpenForgetModal.value || isOpenLateEarlyModal.value;
+});
+
 // timesheet modal
 // Nếu là db thật thì lấy ngày hiện tại
 // vì data chưa đc sync nên fix cứng một ngày
@@ -130,7 +134,7 @@ const { data: timesheetDetail, isLoading: isLoadingDetail } = useQuery(
   `/timesheet/detail`,
   timesheetDetailParams,
   {
-    enabled: isOpenForgetModal,
+    enabled: isEnabledGetTimesheetDetail,
     onSuccess: () => {
       console.log("Fetch success");
     },
@@ -153,6 +157,7 @@ const handleClickLateEarlyBtn = (work_date) => {
 
 // provide
 provide("timesheetDetail", timesheetDetail);
+
 const getDaysOfWeek = function (date) {
   return date.concat(
     " | ",
@@ -173,7 +178,6 @@ const getDaysOfWeek = function (date) {
     :style="{ maxWidth: '700px', width: '100%' }"
   >
     <ForgetForm
-      :selected-date="selectedDay"
       @disable-submit-btn="isDisableForgetBtn = true"
       @enable-submit-btn="isDisableForgetBtn = false"
     />
@@ -181,6 +185,7 @@ const getDaysOfWeek = function (date) {
 
   <CardBoxModal
     v-model="isOpenLateEarlyModal"
+    :loading="isLoadingDetail"
     title="Register Late/Early"
     confirm-on-click-overlay
     button-label="Register"
@@ -282,6 +287,10 @@ const getDaysOfWeek = function (date) {
               @click="() => handleClickForgetBtn(timeSheetItem.work_date)"
             />
             <BaseButton
+              :disabled="
+                checkZeroTime(timeSheetItem.late_time) &&
+                checkZeroTime(timeSheetItem.early_time)
+              "
               color="danger"
               label="Late/Early"
               small

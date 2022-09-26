@@ -1,14 +1,30 @@
 <template id="loading">
-  <div class="reverse-spinner"></div>
+  <div class="reverse-spinner" :style="componentStyle"></div>
 </template>
 
-<script setup></script>
+<script setup>
+import { computed } from "vue";
+
+const props = defineProps({
+  size: {
+    type: Number,
+    default: 100,
+  },
+});
+
+const componentStyle = computed(() => {
+  let style = {};
+
+  style.width = `${props.size}px`;
+  style.height = `${props.size}px`;
+
+  return style;
+});
+</script>
 
 <style lang="scss" scoped>
 .reverse-spinner {
   position: relative;
-  height: 100px;
-  width: 100px;
   border: 4px solid transparent;
   border-top-color: #1976d2;
   border-left-color: #1976d2;
@@ -23,7 +39,7 @@
   left: 15px;
   right: 15px;
   bottom: 15px;
-  content: '';
+  content: "";
   border: 4px solid transparent;
   border-top-color: #03a9f4;
   border-left-color: #03a9f4;

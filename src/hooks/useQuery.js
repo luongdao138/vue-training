@@ -27,6 +27,8 @@ export function useQuery(url, params = {}, options = {}) {
     console.log("Call API: ", unref(url));
 
     isLoading.value = true;
+    isSuccess.value = false;
+    isError.value = false;
     status.value = "pending";
 
     let axiosInstance = unref(requiredAuth) ? client : axios;

@@ -1,5 +1,15 @@
 import moment from "moment";
 
+export const converTimeToNumber = (time) => {
+  if (!time) return [0, 0];
+  let [hour, min] = time.split(":");
+
+  hour = Number(hour);
+  min = Number(min);
+
+  return [hour, min];
+};
+
 export const convertDate = (date, format = "YYYY-MM-DD") => {
   if (!date) return "";
   return moment(date).format(format);
@@ -9,13 +19,8 @@ export const formatTimeNumber = (value) =>
   `${value < 10 ? `0${value}` : value}`;
 
 export const compareTwoTime = (time1, time2, operation = ">") => {
-  let [hour1, min1] = time1.split(":");
-  hour1 = Number(hour1);
-  min1 = Number(min1);
-
-  let [hour2, min2] = time2.split(":");
-  hour2 = Number(hour2);
-  min2 = Number(min2);
+  const [hour1, min1] = converTimeToNumber(time1);
+  const [hour2, min2] = converTimeToNumber(time2);
 
   switch (operation) {
     case ">":
@@ -45,9 +50,7 @@ export const compareDateVsSetting = (date, setting, operation = ">") => {
 export const changeTime = (time, amount = 0) => {
   if (amount === 0) return time;
 
-  let [hour, min] = time.split(":");
-  hour = Number(hour);
-  min = Number(min);
+  const [hour, min] = converTimeToNumber(time);
 
   if (amount > 0) {
     if (min + amount <= 59) {
@@ -70,4 +73,10 @@ export const checkEqualDays = (day1, day2, unit = "day") => {
   day1 = new Date(day1);
   day2 = new Date(day2);
   return moment(day1).isSame(new Date(), unit);
+};
+
+export const checkZeroTime = (time) => {
+  const [hour, min] = converTimeToNumber(time);
+
+  return hour === 0 && min === 0;
 };

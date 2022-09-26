@@ -1,4 +1,5 @@
 <script setup>
+import { convertDate } from "@/utils/datetime";
 import { computed } from "vue";
 
 const props = defineProps({
@@ -8,16 +9,20 @@ const props = defineProps({
   },
   dateMask: {
     type: String,
-    default: "DD-MM-YYYY",
+    default: "YYYY-MM-DD",
   },
   inputMask: {
     type: String,
-    default: "##-##-####",
+    default: "####-##-##",
   },
   inputRules: {
     type: Object,
     // eslint-disable-next-line vue/require-valid-default-prop
-    default: [(val) => Boolean(val) || "Date can not be empty"],
+    default: [() => true],
+  },
+  options: {
+    type: Function,
+    default: () => true,
   },
 });
 
@@ -44,7 +49,12 @@ const computedValue = computed({
     <template #append>
       <q-icon name="event" class="cursor-pointer">
         <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-          <q-date v-model="computedValue" :mask="dateMask">
+          <q-date
+            v-model="computedValue"
+            :mask="dateMask"
+            :default-year-month="convertDate(new Date(), 'YYYY/MM')"
+            :options="options"
+          >
             <div class="row items-center justify-end">
               <q-btn v-close-popup label="Close" color="primary" flat />
             </div>
