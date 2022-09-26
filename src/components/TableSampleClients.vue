@@ -24,6 +24,7 @@ import { checkEqualDays, checkZeroTime } from "@/utils/datetime";
 import LateEarlyForm from "./Timesheet/LateEarlyForm.vue";
 
 import CardBoxComponentEmpty from "@/components/CardBoxComponentEmpty.vue";
+import LeaveForm from "./Timesheet/LeaveForm.vue";
 defineProps({
   checkable: Boolean,
 });
@@ -81,10 +82,10 @@ const TimeSheetItems = computed(() => {
 
 const isOpenForgetModal = ref(false);
 const isOpenLateEarlyModal = ref(false);
+const isOpenLeaveModal = ref(false);
 
 const isDisableForgetBtn = ref(false);
-
-const isModalDangerActive = ref(false);
+const isDisableLeaveBtn = ref(false);
 
 const perPage = ref(10);
 
@@ -122,12 +123,14 @@ const pagesList = computed(() => {
 });
 
 const isEnabledGetTimesheetDetail = computed(() => {
-  return isOpenForgetModal.value || isOpenLateEarlyModal.value;
+  return (
+    isOpenForgetModal.value ||
+    isOpenLateEarlyModal.value ||
+    isOpenLeaveModal.value
+  );
 });
 
 // timesheet modal
-// Nếu là db thật thì lấy ngày hiện tại
-// vì data chưa đc sync nên fix cứng một ngày
 const timesheetDetailParams = ref({ date: null });
 const { data: timesheetDetail, isLoading: isLoadingDetail } = useQuery(
   // `/timesheet/detail?date=${getCurrentDay()}`,
@@ -141,17 +144,20 @@ const { data: timesheetDetail, isLoading: isLoadingDetail } = useQuery(
   }
 );
 
-const handleClickForgetBtn = (work_date) => {
+const handleClickActionBtn = (work_date, type = "forget") => {
   timesheetDetailParams.value.date = work_date;
   nextTick(() => {
-    isOpenForgetModal.value = true;
-  });
-};
+    if (type === "leave") {
+      isOpenLeaveModal.value = true;
+      return;
+    }
 
-const handleClickLateEarlyBtn = (work_date) => {
-  timesheetDetailParams.value.date = work_date;
-  nextTick(() => {
-    isOpenLateEarlyModal.value = true;
+    if (type === "late/early") {
+      isOpenLateEarlyModal.value = true;
+      return;
+    }
+
+    isOpenForgetModal.value = true;
   });
 };
 
@@ -196,13 +202,19 @@ const getDaysOfWeek = function (date) {
   </CardBoxModal>
 
   <CardBoxModal
-    v-model="isModalDangerActive"
-    title="Please confirm"
-    button="danger"
+    v-model="isOpenLeaveModal"
+    :loading="isLoadingDetail"
+    title="Register leave"
+    button-label="Register"
+    confirm-on-click-overlay
     has-cancel
+    :disable-submit-btn="isDisableLeaveBtn"
+    :style="{ maxWidth: '700px', width: '100%' }"
   >
-    <p>Lorem ipsum dolor sit amet <b>adipiscing elit</b></p>
-    <p>This is sample modal</p>
+    <LeaveForm
+      @disable-submit-btn="isDisableForgetBtn = true"
+      @enable-submit-btn="isDisableForgetBtn = false"
+    />
   </CardBoxModal>
   <table>
     <thead>
@@ -284,7 +296,7 @@ const getDaysOfWeek = function (date) {
               color="info"
               small
               label="Forget"
-              @click="() => handleClickForgetBtn(timeSheetItem.work_date)"
+              @click="handleClickActionBtn(timeSheetItem.work_date)"
             />
             <BaseButton
               :disabled="
@@ -294,13 +306,15 @@ const getDaysOfWeek = function (date) {
               color="danger"
               label="Late/Early"
               small
-              @click="() => handleClickLateEarlyBtn(timeSheetItem.work_date)"
+              @click="
+                handleClickActionBtn(timeSheetItem.work_date, 'late/early')
+              "
             />
             <BaseButton
               color="success"
               label="Leave"
               small
-              @click="isModalDangerActive = true"
+              @click="handleClickActionBtn(timeSheetItem.work_date, 'leave')"
             />
           </BaseButtons>
         </td>
