@@ -32,67 +32,69 @@ watch(
 </script>
 
 <template setup>
-  <TimeSheetItem label="Register for date">
-    <DatePicker v-model="registerForDate" />
-  </TimeSheetItem>
-  <TimeSheetItem label="Manager">
-    <p>{{ detailData?.manager_name }}</p>
-  </TimeSheetItem>
-  <TimeSheetItem label="Other request">
-    <p>N/A</p>
-  </TimeSheetItem>
-
-  <div class="grid grid-cols-2">
-    <TimeSheetItem label="Checkin">
-      <p>
-        {{ convertDate(detailData.checkin, "HH:mm") }}
-      </p>
+  <div v-if="Boolean(detailData)" class="space-y-3 -mb-8">
+    <TimeSheetItem label="Register for date">
+      <DatePicker v-model="registerForDate" />
     </TimeSheetItem>
-    <TimeSheetItem label="Checkout">
-      <p>
-        {{ convertDate(detailData.checkout, "HH:mm") }}
-      </p>
+    <TimeSheetItem label="Manager">
+      <p>{{ detailData?.manager_name }}</p>
     </TimeSheetItem>
-  </div>
-
-  <div class="grid grid-cols-2">
-    <TimeSheetItem label="Work time">
-      <p>
-        {{ detailData.work_time }}
-      </p>
+    <TimeSheetItem label="Other request">
+      <p>N/A</p>
     </TimeSheetItem>
-    <TimeSheetItem label="Lack time">
-      <p>
-        {{ detailData.lack_time }}
-      </p>
+
+    <div class="grid grid-cols-2">
+      <TimeSheetItem label="Checkin">
+        <p>
+          {{ convertDate(detailData.checkin, "HH:mm") }}
+        </p>
+      </TimeSheetItem>
+      <TimeSheetItem label="Checkout">
+        <p>
+          {{ convertDate(detailData.checkout, "HH:mm") }}
+        </p>
+      </TimeSheetItem>
+    </div>
+
+    <div class="grid grid-cols-2">
+      <TimeSheetItem label="Work time">
+        <p>
+          {{ detailData.work_time }}
+        </p>
+      </TimeSheetItem>
+      <TimeSheetItem label="Lack time">
+        <p>
+          {{ detailData.lack_time }}
+        </p>
+      </TimeSheetItem>
+    </div>
+
+    <TimeSheetItem label="Leave all day">
+      <Checkbox v-model="leaveAllDay" />
     </TimeSheetItem>
-  </div>
 
-  <TimeSheetItem label="Leave all day">
-    <Checkbox v-model="leaveAllDay" />
-  </TimeSheetItem>
+    <TimeSheetItem label="Range" required>
+      <p>Range</p>
+    </TimeSheetItem>
 
-  <TimeSheetItem label="Range" required>
-    <p>Range</p>
-  </TimeSheetItem>
+    <TimeSheetItem label="Reason" required>
+      <TextArea v-model="reason" />
+    </TimeSheetItem>
 
-  <TimeSheetItem label="Reason" required>
-    <TextArea v-model="reason" />
-  </TimeSheetItem>
+    <div class="italic">
+      <p>- Trường hợp nghỉ cả ngày thì chọn "leave all day"</p>
+      <p>
+        - Trường hợp nghỉ cả sáng cả chiều (không nghỉ cả ngày)
+        <br />
+        thì cần tạo 2 khoảng thời gian tương ứng không trùng với khoảng thời
+        gian nghỉ trưa
+      </p>
+    </div>
 
-  <div class="italic">
-    <p>- Trường hợp nghỉ cả ngày thì chọn "leave all day"</p>
-    <p>
-      - Trường hợp nghỉ cả sáng cả chiều (không nghỉ cả ngày)
-      <br />
-      thì cần tạo 2 khoảng thời gian tương ứng không trùng với khoảng thời gian
-      nghỉ trưa
-    </p>
-  </div>
-
-  <div>
-    <p>- Leave time: 08:00</p>
-    <p class="text-red-600">Time range cannot content lunch time</p>
-    <p class="text-amber-500">* Warning leave time 08:00 > lack time</p>
+    <div>
+      <p>- Leave time: 08:00</p>
+      <p class="text-red-600">Time range cannot content lunch time</p>
+      <p class="text-amber-500">* Warning leave time 08:00 > lack time</p>
+    </div>
   </div>
 </template>
